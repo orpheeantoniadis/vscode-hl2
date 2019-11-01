@@ -4,6 +4,7 @@
 	"description": "Run Python code on hepiaLight2",
 	"version": "0.0.1",
 	"publisher": "orpheeantoniadis",
+	"repository": "https://github.com/orpheeantoniadis/hl2-vscode-extension.git",
 	"engines": {
 		"vscode": "^1.39.0"
 	},
