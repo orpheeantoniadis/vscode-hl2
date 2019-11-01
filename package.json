@@ -2,7 +2,7 @@
 	"name": "hl2",
 	"displayName": "hepiaLight2",
 	"description": "Run Python code on hepiaLight2",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"publisher": "orpheeantoniadis",
 	"repository": "https://github.com/orpheeantoniadis/hl2-vscode-extension.git",
 	"engines": {
@@ -18,20 +18,11 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "extension.connect",
-				"title": "hepiaLight2: Connect"
-			},
-			{
 				"command": "extension.upload",
 				"title": "hepiaLight2: Upload current file"
 			}
 		],
 		"keybindings": [
-			{
-				"command": "extension.connect",
-				"key": "ctrl+shift+c",
-				"mac": "cmd+shift+c"
-			},
 			{
 				"command": "extension.upload",
 				"key": "ctrl+shift+s",
@@ -46,10 +37,6 @@
 				}
 			],
 			"editor/context": [
-				{
-					"command": "extension.connect",
-					"group": "hepiaLight2"
-				},
 				{
 					"command": "extension.upload",
 					"group": "hepiaLight2"
