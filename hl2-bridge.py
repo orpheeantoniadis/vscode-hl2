@@ -33,7 +33,8 @@ class HepiaLight2Communicator:
             print("No hepiaLight2 connected")
         
     def deinit(self):
-        self.usb.close()
+        if self.usb != None:
+            self.usb.close()
         
     def put_char(self, char):
         self.usb.write(char.encode())
@@ -86,7 +87,7 @@ class HepiaLight2Uploader(HepiaLight2Communicator):
         self.put_string(BREAK)
         self.last_indentation = 0
         for line in self.lines:
-            if (line and line != b'\r'):
+            if (line and line != b'\n'):
                 self.send_line(line.decode())
                 time.sleep(INSTRUCTION_INTERVAL / 1000)
         self.send_line('')
@@ -99,4 +100,4 @@ if __name__ == "__main__":
         uploader = HepiaLight2Uploader(path)
         if uploader.usb != None:
             uploader.send_file()
-        uploader.deinit()
+            uploader.deinit()

@@ -70,6 +70,7 @@
 	},
 	"dependencies": {
 		"electron-compile": "^6.4.4",
-		"electron-compiler": "^1.0.9"
+		"electron-compiler": "^1.0.9",
+		"python-shell": "1.0.8"
 	}
 }
