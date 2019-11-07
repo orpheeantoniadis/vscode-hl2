@@ -14,7 +14,7 @@
 	"activationEvents": [
 		"*"
 	],
-	"main": "./extension.js",
+	"main": "./src/extension.js",
 	"contributes": {
 		"commands": [
 			{
@@ -22,8 +22,17 @@
 				"title": "Run current file on hepiaLight2",
 				"category": "hepiaLight2",
 				"icon": {
-                    "light": "./resources/light/run-file.svg",
-                    "dark": "./resources/dark/run-file.svg"
+                    "light": "./resources/icons/light/run-file.svg",
+                    "dark": "./resources/icons/dark/run-file.svg"
+                }
+			},
+			{
+				"command": "extension.update",
+				"title": "Update hepiaLight2",
+				"category": "hepiaLight2",
+				"icon": {
+                    "light": "./resources/icons/light/refresh.svg",
+                    "dark": "./resources/icons/dark/refresh.svg"
                 }
 			}
 		],
@@ -53,6 +62,10 @@
 				{
 					"when": "resourceLangId == python",
 					"command": "extension.run",
+					"group": "navigation"
+				},
+				{
+					"command": "extension.update",
 					"group": "navigation"
 				}
 			]
