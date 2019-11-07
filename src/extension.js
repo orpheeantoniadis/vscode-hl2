@@ -6,10 +6,17 @@ function activate(context) {
 	let run_disposable = vscode.commands.registerCommand('extension.run', function () {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
+			let find_script_path = path.resolve(__dirname, '../scripts/hl2-find.py');
+			let bridge_script_path = path.resolve(__dirname, '../scripts/hl2-bridge.py');
 			let document = editor.document;
-			let script_path = path.resolve(__dirname, '../scripts/hl2-bridge.py');
-			PythonShell.run(script_path, {args : [document.fileName]}, function(err, results) {
-				if (err) throw err;
+
+			PythonShell.run(find_script_path, {}, function(err, results) {
+				results.forEach(element => {
+					vscode.window.showInformationMessage("Running on " + element);
+				});
+			});
+
+			PythonShell.run(bridge_script_path, {args : [document.fileName]}, function(err, results) {
 				results.forEach(element => {
 					vscode.window.showInformationMessage(element);
 				});
@@ -18,10 +25,17 @@ function activate(context) {
 	});
 
 	let update_disposable = vscode.commands.registerCommand('extension.update', function () {
-		let script_path = path.resolve(__dirname, '../scripts/hl2-program.py');
+		let find_script_path = path.resolve(__dirname, '../scripts/hl2-find.py');
+		let program_script_path = path.resolve(__dirname, '../scripts/hl2-program.py');
 		let firmware_path = path.resolve(__dirname, "../resources/binaries/hepialight2-firmware.bin");
-		PythonShell.run(script_path, {args : [firmware_path]}, function(err, results) {
-			if (err) throw err;
+
+		PythonShell.run(find_script_path, {}, function(err, results) {
+			results.forEach(element => {
+				vscode.window.showInformationMessage("Updating " + element);
+			});
+		});
+
+		PythonShell.run(program_script_path, {args : [firmware_path]}, function(err, results) {
 			results.forEach(element => {
 				vscode.window.showInformationMessage(element);
 			});

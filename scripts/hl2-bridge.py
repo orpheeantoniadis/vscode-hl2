@@ -28,9 +28,6 @@ class HepiaLight2Communicator:
                 break
         if self.port != None:
             self.usb = serial.Serial(self.port)
-            print("hepiaLight2 connected at port {}".format(self.port))
-        else:
-            print("No hepiaLight2 connected")
         
     def deinit(self):
         if self.usb != None:
@@ -67,14 +64,14 @@ class HepiaLight2Uploader(HepiaLight2Communicator):
 
         for i in range(len(line)):
             if line[i] != ' ':
-                indentation = -1 if i % 2 else i
+                indentation = -1 if i % 4 else i
                 break
 
         if indentation < self.last_indentation:
-            nb_backspace = int((self.last_indentation - indentation) / 2)
+            nb_backspace = int((self.last_indentation - indentation) / 4)
             for i in range(nb_backspace):
                 command += BACKSPACE
-            if indentation == 0 and self.last_indentation > 0: 
+            if indentation == 0:
                 command += EOL
 
         self.last_indentation = indentation
@@ -93,11 +90,10 @@ class HepiaLight2Uploader(HepiaLight2Communicator):
         self.send_line('')
             
 if __name__ == "__main__":
-    if len(sys.argv) <= 1:
-        print("Usage: python hl2-bridge.py <path>")
-    else :
+    if len(sys.argv) > 1:
         path = sys.argv[1]
         uploader = HepiaLight2Uploader(path)
         if uploader.usb != None:
             uploader.send_file()
             uploader.deinit()
+            print("Script send to hepialight2")

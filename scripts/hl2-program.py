@@ -26,15 +26,16 @@ class HepiaLight2Communicator:
                 break
         if self.port != None:
             self.usb = serial.Serial(self.port)
-            print("hepiaLight2 connected at port {}".format(self.port))
-        else:
-            print("No hepiaLight2 connected")
         
     def deinit(self):
-        self.usb.close()
+        if self.usb != None:
+            self.usb.close()
         
     def put_char(self, char):
         self.usb.write(char.encode())
+
+    def put_string(self, string):
+        self.usb.write(string.encode())
         
     def put_int(self, int):
         self.usb.write(struct.pack('>I', int))
@@ -91,27 +92,19 @@ class HepiaLight2Programmer(HepiaLight2Communicator):
         self.put_int(binascii.crc32(self.firmware))
         
     def start(self):
-        print("Rebooting device")
         self.usb.write('update()\r\n'.encode())
         self.usb.close()
         time.sleep(2)
         self.usb.open()
-        print("Handshaking with device")
         self.handshake()
-        print("Programming device")
         self.send_firmware()
-        print("Sending firmware checksum")
         self.send_checksum()
-        print("Device successfully program")
         self.deinit()
 
 if __name__ == "__main__":
-    if len(sys.argv) <= 1:
-        print("Usage: py send_firmware.py <firmware.bin>")
-    else :
+    if len(sys.argv) > 1:
         firmware_path = sys.argv[1]
         programmer = HepiaLight2Programmer(firmware_path)
         if programmer.usb != None:
             programmer.start()
-        else:
-            sys.exit()
+            print('hepiaLight2 successfully updated')
