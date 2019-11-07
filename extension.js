@@ -14,7 +14,7 @@ function activate(context) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
 	// The commandId parameter must match the command field in package.json
-	let upload_disposable = vscode.commands.registerCommand('extension.upload', function () {
+	let run_disposable = vscode.commands.registerCommand('extension.run', function () {
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
 			let document = editor.document;
@@ -27,7 +27,7 @@ function activate(context) {
 		}
 	});
 
-	context.subscriptions.push(upload_disposable);
+	context.subscriptions.push(run_disposable);
 }
 exports.activate = activate;
 

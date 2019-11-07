@@ -18,34 +18,42 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "extension.upload",
-				"title": "hepiaLight2: Upload current file"
+				"command": "extension.run",
+				"title": "Run current file on hepiaLight2",
+				"category": "hepiaLight2",
+				"icon": {
+                    "light": "./resources/light/run-file.svg",
+                    "dark": "./resources/dark/run-file.svg"
+                }
 			}
 		],
 		"keybindings": [
 			{
-				"command": "extension.upload",
-				"key": "ctrl+shift+s",
-				"mac": "cmd+shift+s"
+				"command": "extension.run",
+				"key": "ctrl+shift+r",
+				"mac": "cmd+shift+r"
 			}
 		],
 		"menus": {
 			"explorer/context": [
 				{
-					"command": "extension.upload",
-					"group": "hepiaLight2"
+					"when": "resourceLangId == python",
+					"command": "extension.run",
+					"group": "navigation"
 				}
 			],
 			"editor/context": [
 				{
-					"command": "extension.upload",
-					"group": "hepiaLight2"
+					"when": "resourceLangId == python",
+					"command": "extension.run",
+					"group": "navigation"
 				}
 			],
 			"editor/title": [
 				{
-					"command": "extension.upload",
-					"group": "hepiaLight2"
+					"when": "resourceLangId == python",
+					"command": "extension.run",
+					"group": "navigation"
 				}
 			]
 		}
