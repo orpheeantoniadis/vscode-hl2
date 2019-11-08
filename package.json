@@ -1,98 +1,103 @@
 {
-	"name": "hl2",
-	"displayName": "hepiaLight2",
-	"description": "Run Python code on hepiaLight2",
-	"version": "0.2.1",
-	"publisher": "orpheeantoniadis",
-	"repository": "https://github.com/orpheeantoniadis/hl2-vscode-extension.git",
-	"engines": {
-		"vscode": "^1.39.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"*"
-	],
-	"main": "./src/extension.js",
-	"contributes": {
-		"commands": [
-			{
-				"command": "extension.run",
-				"title": "Run current file on hepiaLight2",
-				"category": "hepiaLight2",
-				"icon": {
+    "name": "hl2",
+    "displayName": "hepiaLight2",
+    "description": "Run Python code on hepiaLight2",
+    "version": "0.3.0",
+    "publisher": "orpheeantoniadis",
+    "repository": "https://github.com/orpheeantoniadis/vscode-hl2.git",
+    "icon": "./resources/images/icon.png",
+    "galleryBanner": {
+        "color": "#1e415e",
+        "theme": "dark"
+    },
+    "engines": {
+        "vscode": "^1.39.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./src/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "extension.run",
+                "title": "Run current file on hepiaLight2",
+                "category": "hepiaLight2",
+                "icon": {
                     "light": "./resources/icons/light/run-file.svg",
                     "dark": "./resources/icons/dark/run-file.svg"
                 }
-			},
-			{
-				"command": "extension.update",
-				"title": "Update hepiaLight2",
-				"category": "hepiaLight2",
-				"icon": {
+            },
+            {
+                "command": "extension.update",
+                "title": "Update hepiaLight2",
+                "category": "hepiaLight2",
+                "icon": {
                     "light": "./resources/icons/light/refresh.svg",
                     "dark": "./resources/icons/dark/refresh.svg"
                 }
-			}
-		],
-		"keybindings": [
-			{
-				"command": "extension.run",
-				"key": "ctrl+shift+r",
-				"mac": "cmd+shift+r"
-			}
-		],
-		"menus": {
-			"explorer/context": [
-				{
-					"when": "resourceLangId == python",
-					"command": "extension.run",
-					"group": "navigation"
-				}
-			],
-			"editor/context": [
-				{
-					"when": "resourceLangId == python",
-					"command": "extension.run",
-					"group": "navigation"
-				}
-			],
-			"editor/title": [
-				{
-					"when": "resourceLangId == python",
-					"command": "extension.run",
-					"group": "navigation"
-				},
-				{
-					"command": "extension.update",
-					"group": "navigation"
-				}
-			]
-		}
-	},
-	"scripts": {
-		"postinstall": "pip install pyserial",
-		"test": "node ./test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/glob": "^7.1.1",
-		"@types/mocha": "^5.2.6",
-		"@types/node": "^10.12.21",
-		"@types/vscode": "^1.39.0",
-		"electron-compilers": "^5.9.0",
-		"electron-prebuilt-compile": "^4.0.0",
-		"electron-rebuild": "^1.8.6",
-		"eslint": "^5.13.0",
-		"glob": "^7.1.4",
-		"mocha": "^6.1.4",
-		"prebuild-install": "^2.4.1",
-		"typescript": "^3.3.1",
-		"vscode-test": "^1.2.0"
-	},
-	"dependencies": {
-		"electron-compile": "^6.4.4",
-		"electron-compiler": "^1.0.9",
-		"python-shell": "1.0.8"
-	}
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "extension.run",
+                "key": "ctrl+shift+r",
+                "mac": "cmd+shift+r"
+            }
+        ],
+        "menus": {
+            "explorer/context": [
+                {
+                    "when": "resourceLangId == python",
+                    "command": "extension.run",
+                    "group": "navigation"
+                }
+            ],
+            "editor/context": [
+                {
+                    "when": "resourceLangId == python",
+                    "command": "extension.run",
+                    "group": "navigation"
+                }
+            ],
+            "editor/title": [
+                {
+                    "when": "resourceLangId == python",
+                    "command": "extension.run",
+                    "group": "navigation"
+                },
+                {
+                    "command": "extension.update",
+                    "group": "navigation"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "postinstall": "pip install pyserial",
+        "test": "node ./test/runTest.js"
+    },
+    "devDependencies": {
+        "@types/glob": "^7.1.1",
+        "@types/mocha": "^5.2.6",
+        "@types/node": "^10.12.21",
+        "@types/vscode": "^1.39.0",
+        "electron-compilers": "^5.9.0",
+        "electron-prebuilt-compile": "^4.0.0",
+        "electron-rebuild": "^1.8.6",
+        "eslint": "^5.13.0",
+        "glob": "^7.1.4",
+        "mocha": "^6.1.4",
+        "prebuild-install": "^2.4.1",
+        "typescript": "^3.3.1",
+        "vscode-test": "^1.2.0"
+    },
+    "dependencies": {
+        "electron-compile": "^6.4.4",
+        "electron-compiler": "^1.0.9",
+        "python-shell": "1.0.8"
+    }
 }
