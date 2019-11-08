@@ -2,11 +2,8 @@
 .eslintrc.json
 .gitignore
 jsconfig.json
-package-lock.json
 vsc-extension-quickstart.md
 
 .vscode/**
 .vscode-test/**
-node_modules/**
-src/**
 test/**
