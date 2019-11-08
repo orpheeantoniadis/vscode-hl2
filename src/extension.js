@@ -12,7 +12,10 @@ function activate(context) {
 
 			PythonShell.run(find_script_path, {}, function(err, results) {
 				results.forEach(element => {
-					vscode.window.showInformationMessage("Running on " + element);
+					if (element != "No hepiaLight2 connected") {
+						element = "Running on " + element;
+					}
+					vscode.window.showInformationMessage(element);
 				});
 			});
 
@@ -31,7 +34,10 @@ function activate(context) {
 
 		PythonShell.run(find_script_path, {}, function(err, results) {
 			results.forEach(element => {
-				vscode.window.showInformationMessage("Updating " + element);
+				if (element != "No hepiaLight2 connected") {
+					element = "Updating " + element;
+				}
+				vscode.window.showInformationMessage(element);
 			});
 		});
 
@@ -42,7 +48,7 @@ function activate(context) {
 		});
 	});
 
-	context.subscriptions.push(run_disposable);
+	context.subscriptions.push(run_disposable, update_disposable);
 }
 exports.activate = activate;
 
