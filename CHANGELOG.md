@@ -4,6 +4,10 @@ All notable changes to the "hl2" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [v0.3.5]
+
+ * Change icon color to be darker
+
 ## [v0.3.4]
 
  * Fix the issue. Some files should not be ignored in .vscodeignore
