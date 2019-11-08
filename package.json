@@ -72,6 +72,7 @@
 		}
 	},
 	"scripts": {
+		"postinstall": "pip install pyserial",
 		"test": "node ./test/runTest.js"
 	},
 	"devDependencies": {

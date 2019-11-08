@@ -1,8 +1,12 @@
+**/*.map
+.eslintrc.json
+.gitignore
+jsconfig.json
+package-lock.json
+vsc-extension-quickstart.md
+
 .vscode/**
 .vscode-test/**
+node_modules/**
+src/**
 test/**
-.gitignore
-vsc-extension-quickstart.md
-**/jsconfig.json
-**/*.map
-**/.eslintrc.json
