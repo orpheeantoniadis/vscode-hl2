@@ -2,7 +2,7 @@
     "name": "hl2",
     "displayName": "hepiaLight2",
     "description": "Run Python code on hepiaLight2",
-    "version": "0.3.5",
+    "version": "0.3.6",
     "publisher": "orpheeantoniadis",
     "repository": "https://github.com/orpheeantoniadis/vscode-hl2.git",
     "icon": "icon.png",
@@ -98,6 +98,7 @@
     "dependencies": {
         "electron-compile": "^6.4.4",
         "electron-compiler": "^1.0.9",
-        "python-shell": "1.0.8"
+        "python-shell": "1.0.8",
+        "semver": "6.3.0"
     }
 }
