@@ -4,10 +4,14 @@ All notable changes to the "hl2" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [v0.3.7]
+## [v0.3.8]
 
  * Update program script to fit with the new bootloader logic
  * Update firmware to version 0.4.1
+
+## [v0.3.7]
+
+ * Fix an issue with version checking
 
 ## [v0.3.6]
 
