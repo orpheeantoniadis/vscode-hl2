@@ -11,7 +11,7 @@
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.39.0"
+        "vscode": "^1.22.0"
     },
     "categories": [
         "Other"
@@ -77,14 +77,18 @@
         }
     },
     "scripts": {
-        "postinstall": "pip install pyserial",
-        "test": "node ./test/runTest.js"
+        "postinstall": "pip install pyserial && electron-builder install-app-deps",
+        "test": "node ./test/runTest.js",
+        "pack": "electron-builder --dir",
+        "dist": "electron-builder"
     },
     "devDependencies": {
         "@types/glob": "^7.1.1",
         "@types/mocha": "^5.2.6",
-        "@types/node": "^10.12.21",
-        "@types/vscode": "^1.39.0",
+        "@types/node": "^12.12.17",
+        "@types/vscode": "^1.40.0",
+        "electron": "^4.0.4",
+        "electron-builder": "^21.2.0",
         "electron-compilers": "^5.9.0",
         "electron-prebuilt-compile": "^4.0.0",
         "electron-rebuild": "^1.8.6",
@@ -96,9 +100,11 @@
         "vscode-test": "^1.2.0"
     },
     "dependencies": {
+        "electron-builder": "^21.2.0",
         "electron-compile": "^6.4.4",
         "electron-compiler": "^1.0.9",
         "python-shell": "1.0.8",
-        "semver": "6.3.0"
+        "semver": "6.3.0",
+        "serialport": "^8.0.4"
     }
 }
