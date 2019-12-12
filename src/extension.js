@@ -3,7 +3,7 @@ const path          = require('path');
 const {PythonShell} = require("python-shell");
 const semver        = require('semver');
 
-const firmware_version    = '0.4.0';
+const firmware_version    = '0.4.1';
 const find_script_path    = path.resolve(__dirname, '../scripts/hl2-find.py');
 const run_script_path     = path.resolve(__dirname, '../scripts/hl2-run.py');
 const program_script_path = path.resolve(__dirname, '../scripts/hl2-program.py');
@@ -57,7 +57,7 @@ function activate(context) {
                         vscode.window.showInformationMessage(element);
                         PythonShell.run(version_script_path, {}, function(err, results) {
                             results.forEach(element => {
-                                fimware_uptodate = semver.gt(element, firmware_version);
+                                fimware_uptodate = semver.gte(element, firmware_version);
                                 if (!fimware_uptodate) {
                                     vscode.window.showInformationMessage(`Updating hepiaLight2 firmware to version ${firmware_version}...`);
                                     PythonShell.run(program_script_path, {args : [firmware_path]}, function(err, results) {
@@ -68,7 +68,7 @@ function activate(context) {
                                         });
                                     });
                                 } else {
-                                    vscode.window.showInformationMessage(`Firmware is up to date (version ${firmware_version})`);
+                                    vscode.window.showInformationMessage(`Firmware is up to date (version ${element})`);
                                     script_running = false;
                                 }
                             });
