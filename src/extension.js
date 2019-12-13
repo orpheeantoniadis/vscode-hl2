@@ -7,7 +7,6 @@ const HepiaBoardManager = require('./HepiaBoardManager.js');
 
 const firmware_version    = '0.4.1';
 const find_script_path    = path.resolve(__dirname, '../scripts/hl2-find.py');
-const run_script_path     = path.resolve(__dirname, '../scripts/hl2-run.py');
 const program_script_path = path.resolve(__dirname, '../scripts/hl2-program.py');
 const version_script_path = path.resolve(__dirname, '../scripts/hl2-version.py');
 const firmware_path       = path.resolve(__dirname, `../resources/binaries/firmware-${firmware_version}.bin`);
@@ -19,37 +18,15 @@ let fimware_uptodate = false;
 
 function activate(context) {
     let run_disposable = vscode.commands.registerCommand('extension.run', function () {
-        if (script_running) {
-            vscode.window.showErrorMessage('hepiaLight2 is busy');
-        } else {
-            let editor = vscode.window.activeTextEditor;
-            if (editor) {
-                let document = editor.document;
-                hepiaBoardManager.outputChannel.show();
-                try {
-                    const data = fs.readFileSync(document.fileName, 'utf8');
-                    hepiaBoardManager.write(data);
-                } catch (err) {
-                    console.error(err);
-                }
-
-                // PythonShell.run(find_script_path, {}, function(err, results) {
-                //     results.forEach(element => {
-                //         if (element == 'No hepiaLight2 connected') {
-                //             vscode.window.showErrorMessage(element);
-                //             script_running = false;
-                //         } else {
-                //             vscode.window.showInformationMessage(element);
-                //             vscode.window.showInformationMessage(`Running ${path.basename(document.fileName)} on hepiaLight2...`);
-                //             PythonShell.run(run_script_path, {args : [document.fileName]}, function(err, results) {
-                //                 results.forEach(element => {
-                //                     vscode.window.showInformationMessage(element);
-                //                     script_running = false;
-                //                 });
-                //             });
-                //         }
-                //     });
-                // });
+        let editor = vscode.window.activeTextEditor;
+        if (editor) {
+            let document = editor.document;
+            hepiaBoardManager.outputChannel.show(preserveFocus=true);
+            try {
+                const data = fs.readFileSync(document.fileName, 'utf8');
+                hepiaBoardManager.write(data);
+            } catch (err) {
+                vscode.window.showErrorMessage(err.message);
             }
         }
     });

@@ -87,7 +87,7 @@
         "@types/mocha": "^5.2.6",
         "@types/node": "^12.12.17",
         "@types/vscode": "^1.40.0",
-        "electron": "^4.0.4",
+        "electron": "^6.1.6",
         "electron-builder": "^21.2.0",
         "electron-compilers": "^5.9.0",
         "electron-prebuilt-compile": "^4.0.0",
@@ -105,6 +105,6 @@
         "electron-compiler": "^1.0.9",
         "python-shell": "1.0.8",
         "semver": "6.3.0",
-        "serialport": "^8.0.4"
+        "serialport": "^8.0.5"
     }
 }

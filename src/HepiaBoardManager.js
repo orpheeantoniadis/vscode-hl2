@@ -12,7 +12,7 @@ class HepiaBoardManager {
     }
 
     sendErr(err) {
-        console.log(err);
+        vscode.window.showErrorMessage(err);
     }
 
     async write(code) {
@@ -36,9 +36,6 @@ class HepiaBoardManager {
             await this.board.connect();
             await this.board.execute(code);
         } catch (err) {
-            console.error(
-                `Cannot write to board:\n${err.message}\n${err.stack}`
-            );
             this.sendErr(`Cannot write to board: ${err}`);
         }
     }

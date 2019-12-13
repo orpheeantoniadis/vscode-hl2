@@ -1,9 +1,10 @@
 const SerialPort = require('serialport');
+const Readline = require('@serialport/parser-readline');
+
 const VENDOR_ID = '1fc9';
 const PRODUCT_ID = '0083';
 const INSTRUCTION_INTERVAL = 1;
 const EOL = '\x0A\x0D';
-const BACKSPACE = '\x08';
 const CHAR_CTRL_C = '\x03';
 const CHAR_CTRL_D = '\x04';
 const CHAR_CTRL_E = '\x05';
@@ -23,19 +24,16 @@ class HepiaBoard {
 
     async connect() {
         const comPort = await this.findHepiaLightCom();
-        if (!comPort) throw 'No hepia light card found';
-        this.port = new SerialPort(comPort.path, {
-            baudRate: 9600,
-            dataBits: 8,
-            parity: 'none',
-            stopBits: 1,
-            rtscts: true,
-            highWaterMark: 1024
-        });
-        this.parser = new SerialPort.parsers.Readline({ delimiter: '\n', encoding: 'utf-8', includeDelimiter: false });
+        if (!comPort) throw 'No hepiaLight2 found';
+        this.port = new SerialPort(comPort.path);
+        this.port.on('open', () => this.onOpen());
+    }
+
+    onOpen() {
+        this.parser = new Readline('\n');
         this.port.pipe(this.parser);
         this.port.on('close', () => this.onClose());
-        this.parser.on('data', data => this.onData(data));
+        this.parser.on('data', line => this.onData(line));
         this.port.on('error', err => this.onError(err));
     }
 
@@ -50,25 +48,26 @@ class HepiaBoard {
     }
 
     onData(data) {
-        console.log(data);
-        this.dataCb(data.toString());
+        this.dataCb(data.toString('utf8'));
+    }
+
+    onReadable() {
+        var data = serial.read();
+        if (data) { //serial.read() could return null if there's nothing to read
+            this.dataCb(data.toString('utf8'));
+        }
     }
 
     splitCodeIntoCommands(code) {
         let commands = [
-            EOL,
             CHAR_CTRL_C,
             'eteindre_tout()',
             EOL,
-            CHAR_CTRL_E,
-            '### NEW PROGRAM ###',
-            EOL
+            CHAR_CTRL_E
         ];
 
         for (let line of code.split('\n')) {
-            if (!line || line == '\r') continue;
-            commands.push(line);
-            commands.push(EOL);
+            commands.push(line + '\r');
         }
         commands.push(CHAR_CTRL_D);
         return commands;
@@ -105,7 +104,6 @@ class HepiaBoard {
                 }
                 let cmd = commandsToExecute.shift();
                 this.port.write(cmd);
-                this.port.flush();
                 this.port.drain();
             };
 
