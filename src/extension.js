@@ -1,5 +1,5 @@
-const vscode        = require('vscode');
-const fs = require('fs');
+const vscode             = require('vscode');
+const fs                 = require('fs');
 const HepiaLight2Manager = require('./hl2-manager.js');
 
 const  hepiaLight2Manager = new HepiaLight2Manager(vscode.window.createOutputChannel('HL2 REPL'));

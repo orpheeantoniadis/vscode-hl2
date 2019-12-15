@@ -22,9 +22,9 @@ class HepiaLight2Prog {
                 await this.board.destroy();
             } catch (err) {
                 console.error(
-                    `Failed to destroy to board:\n${err.message}\n${err.stack}`
+                    `Failed to destroy board:\n${err.message}\n${err.stack}`
                 );
-                this.sendErr(`Failed to destroy to board: ${err}`);
+                this.sendErr(`Failed to destroy board: ${err}`);
             }
             this.board = null;
         }
@@ -52,46 +52,79 @@ class HepiaLight2Prog {
         });
     }
 
-    async getVersion() {
-        
-    }
-
-    async start() {
+    async checkVersion() {
         const version_commands = [
-            CHAR_CTRL_C,
-            'version()',
-            EOL
-        ]
-        const update_commands = [
             CHAR_CTRL_C,
             'update()',
             EOL
         ];
-        await this.destroy();
+        this.board = new HepiaLight2Com(
+            data => this.onData(data),
+            err => this.onError(err),
+            new Readline('\n')
+        );
+        await this.board.connect();
+        await this.board.executeCommands(version_commands);
+        let data = await this.board.read();
+        while (data != '>>> version()\r') {
+            data = await this.board.read();
+        }
+        data = await this.board.read();
+        let boardVersion = data.substring(1, data.length-2);
+        await this.board.destroy();
+        return semver.gt(this.firmwareVersion, boardVersion);
+    }
+
+    async callBootloader() {
+        const update_commands = [
+            CHAR_CTRL_C,
+            'version()',
+            EOL
+        ];
+        this.board = new HepiaLight2Com(
+            data => this.onData(data),
+            err => this.onError(err),
+            new Readline('\n')
+        );
+        await this.board.connect();
+        await this.board.executeCommands(update_commands);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        await this.board.destroy();
+    }
+
+    async put(data) {
+        await this.board.write(data);
+    }
+
+    async get() {
+        return await this.board.read();
+    }
+
+    async wait(data) {
+        while (await this.get() != data);
+    }
+
+    async handshake() {
+        this.board = new HepiaLight2Com(
+            data => this.onData(data),
+            err => this.onError(err),
+            new ByteLength({length: 1})
+        );
+        await this.board.connect();
+        await this.put('r');
+        await this.wait('r');
+    }
+
+    async start() {
         try {
             await this.findFirmware();
-            console.log(this.firmwarePath, this.firmwareVersion);
-            this.board = new HepiaLight2Com(
-                data => this.onData(data),
-                err => this.onError(err),
-                new Readline('\n')
-            );
-            await this.board.connect();
-            await this.board.executeCommands(version_commands);
-            let data = await this.board.read();
-            while (data != '>>> version()\r\n') {
-                console.log(data);
-                data = await this.board.read();
+            if (await this.checkVersion()) {
+                await this.callBootloader();
+                await this.handshake();
             }
-
-            // await this.board.executeCommands(update_commands);
-            // await this.board.destroy();
-            // await new Promise(resolve => setTimeout(resolve, 2000));
-            // await this.board.connect();
         } catch (err) {
             this.onError(`Programmer failed: ${err}`);
         }
-        // this.handshake();
     }
 
     onData(data) {
@@ -100,25 +133,6 @@ class HepiaLight2Prog {
 
     onError(err) {
         vscode.window.showErrorMessage(err);
-    }
-
-    put(data) {
-        this.board.write(data);
-    }
-
-    get() {
-        let data;
-        while ((data = this.board.read()) == undefined);
-        return data;
-    }
-
-    wait(data) {
-        while (this.get != data);
-    }
-
-    handshake() {
-        this.put('r');
-        this.wait('r');
     }
 
     wait_ok() {

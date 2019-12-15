@@ -1,16 +1,12 @@
 const vscode           = require('vscode');
-const path             = require('path');
 const HepiaLight2Com   = require('./hl2-com.js');
 const HepiaLight2Prog  = require('./hl2-prog.js');
-
-const firmware_version = '0.4.1';
-const firmware_path    = path.resolve(__dirname, `../resources/binaries/firmware-${firmware_version}.bin`);
 
 class HepiaLight2Manager {
     constructor(outputChannel) {
         this.outputChannel = outputChannel;
         this.board = null;
-        this.fimware_uptodate = false;
+        this.programmer = null;
     }
 
     sendEcho(str) {
@@ -26,12 +22,22 @@ class HepiaLight2Manager {
             try {
                 await this.board.destroy();
             } catch (err) {
+                this.sendErr(`Failed to destroy board: ${err}`);
                 console.error(
-                    `Failed to destroy to board:\n${err.message}\n${err.stack}`
+                    `Failed to destroy board:\n${err.message}\n${err.stack}`
                 );
-                this.sendErr(`Failed to destroy to board: ${err}`);
             }
             this.board = null;
+        } else if (this.programmer) {
+            try {
+                await this.programmer.destroy();
+            } catch (err) {
+                this.sendErr(`Failed to destroy programmer: ${err}`);
+                console.error(
+                    `Failed to destroy programmer:\n${err.message}\n${err.stack}`
+                );
+            }
+            this.programmer = null;
         }
     }
 
@@ -51,8 +57,8 @@ class HepiaLight2Manager {
 
     async update() {
         await this.destroy();
-        let programmer = new HepiaLight2Prog(this.board);
-        await programmer.start();
+        this.programmer = new HepiaLight2Prog();
+        await this.programmer.start();
     }
 }
 

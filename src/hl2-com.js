@@ -73,7 +73,7 @@ class HepiaLight2Com {
                     if (this.errorRaised) {
                         console.log('Error port disposed');
                     }
-                    this.port.flush(() => this.port.drain());
+                    this.port.drain();
                     resolve();
                     return;
                 }
@@ -123,6 +123,7 @@ class HepiaLight2Com {
     onError(err) {
         this.errorRaised = true;
         this.errorCb(err.message);
+        console.error(err);
     }
 
     onData(data) {
