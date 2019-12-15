@@ -1,10 +1,16 @@
-const vscode     = require('vscode');
-const HepiaBoard = require('./HepiaBoard.js');
+const vscode           = require('vscode');
+const path             = require('path');
+const HepiaLight2Com   = require('./hl2-com.js');
+const HepiaLight2Prog  = require('./hl2-prog.js');
 
-class HepiaBoardManager {
+const firmware_version = '0.4.1';
+const firmware_path    = path.resolve(__dirname, `../resources/binaries/firmware-${firmware_version}.bin`);
+
+class HepiaLight2Manager {
     constructor(outputChannel) {
         this.outputChannel = outputChannel;
         this.board = null;
+        this.fimware_uptodate = false;
     }
 
     sendEcho(str) {
@@ -15,7 +21,7 @@ class HepiaBoardManager {
         vscode.window.showErrorMessage(err);
     }
 
-    async write(code) {
+    async destroy() {
         if (this.board) {
             try {
                 await this.board.destroy();
@@ -27,18 +33,27 @@ class HepiaBoardManager {
             }
             this.board = null;
         }
+    }
 
+    async execute(code) {
+        await this.destroy();
         try {
-            this.board = new HepiaBoard(
+            this.board = new HepiaLight2Com(
                 line => this.sendEcho(line),
                 err => this.sendErr(err)
             );
             await this.board.connect();
-            await this.board.execute(code);
+            await this.board.executeRaw(code);
         } catch (err) {
             this.sendErr(`Cannot write to board: ${err}`);
         }
     }
+
+    async update() {
+        await this.destroy();
+        let programmer = new HepiaLight2Prog(this.board);
+        await programmer.start();
+    }
 }
 
-module.exports = HepiaBoardManager;
+module.exports = HepiaLight2Manager;
