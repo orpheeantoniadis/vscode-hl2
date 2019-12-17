@@ -105,6 +105,7 @@
         "electron-compiler": "^1.0.9",
         "python-shell": "1.0.8",
         "semver": "6.3.0",
-        "serialport": "^8.0.5"
+        "serialport": "^8.0.5",
+        "node-crc": "1.2.2"
     }
 }
