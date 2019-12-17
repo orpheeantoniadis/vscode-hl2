@@ -13,12 +13,13 @@ const CHAR_CTRL_C     = '\x03';
 const DATA_CHUNK_SIZE = 256;
 
 class HepiaLight2Prog {
-    constructor() {
+    constructor(progressCallback) {
         this.board           = null;
         this.bootloaderMode  = false;
         this.firmwareVersion = '0.0.0';
         this.firmwarePath    = '';
         this.firmwareLength  = 0;
+        this.progressCallback = progressCallback;
     }
 
     async destroy() {
@@ -63,6 +64,7 @@ class HepiaLight2Prog {
             const timeoutCallback = () => {
                 this.board.destroy();
                 this.bootloaderMode = true;
+                console.log('Board is in bootloader mode')
                 resolve();
             };
 
@@ -76,7 +78,6 @@ class HepiaLight2Prog {
             let timeout = setTimeout(timeoutCallback, 1000);
             let data = await this.board.read();
             while (data != '>>> \r' && !this.bootloaderMode) {
-                console.log(data);
                 data = await this.board.read();
             }
             clearTimeout(timeout);
@@ -164,7 +165,6 @@ class HepiaLight2Prog {
     async sendSize() {
         let error = true;
         while (error) {
-            console.log(this.firmwareLength);
             await this.putInt(this.firmwareLength);
             error = await this.waitOk();
         }
@@ -196,6 +196,7 @@ class HepiaLight2Prog {
             buffer = buffer.slice(0, dataRead);
             await this.sendData(buffer);
             dataSend += buffer.length;
+            this.progressCallback(buffer.length, this.firmwareLength, `${dataSend}/${this.firmwareLength}`);
         }
     }
 
@@ -217,16 +218,18 @@ class HepiaLight2Prog {
             await this.findFirmware();
             await this.checkBootloaderMode();
             if (await this.checkVersion()) {
-                console.log('Resetting device');
+                this.progressCallback(0, 'Resetting device');
                 await this.callBootloader();
-                console.log('Handshaking with device');
+                this.progressCallback(0, 'Handshaking with device');
                 await this.handshake();
-                console.log('Programming device');
+                this.progressCallback(0, 'Programming device');
                 await this.sendSize();
                 await this.sendFirmware();
-                console.log('Sending firmware checksum');
+                this.progressCallback(0, 'Sending firmware checksum');
                 await this.sendChecksum();
-                console.log('Device successfully program');
+                vscode.window.showInformationMessage('Device successfully program');
+            } else {
+                vscode.window.showInformationMessage(`Firmware is up to date (version ${this.firmwareVersion})`);
             }
         } catch (err) {
             this.onError(`Programmer failed: ${err}`);

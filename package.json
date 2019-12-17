@@ -77,7 +77,7 @@
         }
     },
     "scripts": {
-        "postinstall": "pip install pyserial && electron-builder install-app-deps",
+        "postinstall": "electron-builder install-app-deps",
         "test": "node ./test/runTest.js",
         "pack": "electron-builder --dir",
         "dist": "electron-builder"

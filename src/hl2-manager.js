@@ -56,9 +56,30 @@ class HepiaLight2Manager {
     }
 
     async update() {
-        await this.destroy();
-        this.programmer = new HepiaLight2Prog();
-        await this.programmer.start();
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'Updating device',
+            cancellable: true
+        }, async (progress, token) => {
+            token.onCancellationRequested(() => {
+                this.destroy();
+                this.sendErr('Update canceled. Please disconnect and reconnect the board');
+			});
+            let progressCounter = 0;
+            const progressCallback = (increment, total, message) => {
+                progressCounter += increment;
+                let percent = progressCounter * 100.0 / total;
+                if (percent >= 1) {
+                    progress.report({ increment: percent, message: message });
+                    progressCounter = 0;
+                }
+                
+            };
+
+            await this.destroy();
+            this.programmer = new HepiaLight2Prog(progressCallback);
+            await this.programmer.start();
+        });
     }
 }
 
