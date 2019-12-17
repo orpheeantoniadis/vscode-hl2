@@ -1,22 +1,24 @@
 const vscode         = require('vscode');
-const path           = require('path');
-const fs             = require('fs');
-const HepiaLight2Com = require('./hl2-com.js');
 const Readline       = require('@serialport/parser-readline');
 const ByteLength     = require('@serialport/parser-byte-length');
 const glob           = require('glob');
+const path           = require('path');
+const fs             = require('fs');
 const semver         = require('semver');
-const crc            = require('node-crc')
+const crc            = require('node-crc');
+const HepiaLight2Com = require('./hl2-com.js');
 
-const EOL = '\x0A\x0D';
-const CHAR_CTRL_C = '\x03';
+const EOL             = '\x0A\x0D';
+const CHAR_CTRL_C     = '\x03';
 const DATA_CHUNK_SIZE = 256;
 
 class HepiaLight2Prog {
     constructor() {
-        this.board = null;
+        this.board           = null;
+        this.bootloaderMode  = false;
         this.firmwareVersion = '0.0.0';
-        this.firmwarePath = '';
+        this.firmwarePath    = '';
+        this.firmwareLength  = 0;
     }
 
     async destroy() {
@@ -56,44 +58,67 @@ class HepiaLight2Prog {
         });
     }
 
+    async checkBootloaderMode() {
+        return new Promise(async (resolve) => {
+            const timeoutCallback = () => {
+                this.board.destroy();
+                this.bootloaderMode = true;
+                resolve();
+            };
+
+            this.board = new HepiaLight2Com(
+                data => this.onData(data),
+                err => this.onError(err),
+                new Readline('\n')
+            );
+            await this.board.connect();
+            await this.board.executeCommands([CHAR_CTRL_C, EOL]);
+            let timeout = setTimeout(timeoutCallback, 1000);
+            let data = await this.board.read();
+            while (data != '>>> \r' && !this.bootloaderMode) {
+                console.log(data);
+                data = await this.board.read();
+            }
+            clearTimeout(timeout);
+            await this.board.destroy();
+            resolve();
+        });
+    }
+
     async checkVersion() {
-        const version_commands = [
-            CHAR_CTRL_C,
-            'version()',
-            EOL
-        ];
-        this.board = new HepiaLight2Com(
-            data => this.onData(data),
-            err => this.onError(err),
-            new Readline('\n')
-        );
-        await this.board.connect();
-        await this.board.executeCommands(version_commands);
-        let data = await this.board.read();
-        while (data != '>>> version()\r') {
+        if (!this.bootloaderMode) {
+            this.board = new HepiaLight2Com(
+                data => this.onData(data),
+                err => this.onError(err),
+                new Readline('\n')
+            );
+            await this.board.connect();
+            await this.board.executeCommands([CHAR_CTRL_C, 'version()', EOL]);
+            let data = await this.board.read();
+            while (data != '>>> version()\r') {
+                data = await this.board.read();
+            }
             data = await this.board.read();
+            let boardVersion = data.substring(1, data.length-2);
+            await this.board.destroy();
+            return semver.gt(this.firmwareVersion, boardVersion);
         }
-        data = await this.board.read();
-        let boardVersion = data.substring(1, data.length-2);
-        await this.board.destroy();
-        return semver.gt(this.firmwareVersion, boardVersion);
+        return true;
     }
 
     async callBootloader() {
-        const update_commands = [
-            CHAR_CTRL_C,
-            'update()',
-            EOL
-        ];
-        this.board = new HepiaLight2Com(
-            data => this.onData(data),
-            err => this.onError(err),
-            new Readline('\n')
-        );
-        await this.board.connect();
-        await this.board.executeCommands(update_commands);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        await this.board.destroy();
+        if (!this.bootloaderMode) {
+            this.board = new HepiaLight2Com(
+                data => this.onData(data),
+                err => this.onError(err),
+                new Readline('\n')
+            );
+            await this.board.connect();
+            await this.board.executeCommands([CHAR_CTRL_C, 'update()', EOL]);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            await this.board.destroy();
+            this.bootloaderMode = true;
+        }
     }
 
     async put(data) {
@@ -139,6 +164,7 @@ class HepiaLight2Prog {
     async sendSize() {
         let error = true;
         while (error) {
+            console.log(this.firmwareLength);
             await this.putInt(this.firmwareLength);
             error = await this.waitOk();
         }
@@ -154,7 +180,6 @@ class HepiaLight2Prog {
                 await this.put(dataChecksum);
                 error = await this.waitOk();
                 if (!error) {
-                    // console.log(data);
                     await this.put(data);
                     error = await this.waitOk();
                 }
@@ -190,24 +215,29 @@ class HepiaLight2Prog {
     async start() {
         try {
             await this.findFirmware();
-            // if (await this.checkVersion()) {
-                // await this.callBootloader();
+            await this.checkBootloaderMode();
+            if (await this.checkVersion()) {
+                console.log('Resetting device');
+                await this.callBootloader();
+                console.log('Handshaking with device');
                 await this.handshake();
+                console.log('Programming device');
                 await this.sendSize();
                 await this.sendFirmware();
+                console.log('Sending firmware checksum');
                 await this.sendChecksum();
-            // }
+                console.log('Device successfully program');
+            }
         } catch (err) {
             this.onError(`Programmer failed: ${err}`);
         }
     }
 
     onData(data) {
-        console.log(data);
+        // console.log(data);
     }
 
     onError(err) {
-        console.log(err);
         vscode.window.showErrorMessage(err);
     }
 }
