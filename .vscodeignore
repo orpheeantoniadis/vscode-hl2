@@ -3,7 +3,11 @@
 .gitignore
 jsconfig.json
 vsc-extension-quickstart.md
+webpack.config.js
 
 .vscode/**
 .vscode-test/**
+node_modules/**
+out/**
+src/**
 test/**

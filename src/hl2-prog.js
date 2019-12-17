@@ -5,7 +5,7 @@ const glob           = require('glob');
 const path           = require('path');
 const fs             = require('fs');
 const semver         = require('semver');
-const crc            = require('node-crc');
+const { crc32 }      = require('crc');
 const HepiaLight2Com = require('./hl2-com.js');
 
 const EOL             = '\x0A\x0D';
@@ -119,7 +119,6 @@ class HepiaLight2Prog {
             );
             await this.board.connect();
             await this.board.executeCommands([CHAR_CTRL_C, 'update()', EOL]);
-            await new Promise(resolve => setTimeout(resolve, 2000));
             await this.destroy();
             this.bootloaderMode = true;
         }
@@ -175,12 +174,12 @@ class HepiaLight2Prog {
 
     async sendData(data) {
         let error = true;
-        let dataChecksum = crc.crc32(data);
+        let dataChecksum = crc32(data);
         while (error) {
             await this.put('d');
             error = await this.waitOk();
             if (!error) {
-                await this.put(dataChecksum);
+                await this.putInt(dataChecksum);
                 error = await this.waitOk();
                 if (!error) {
                     await this.put(data);
@@ -205,12 +204,12 @@ class HepiaLight2Prog {
 
     async sendChecksum() {
         let error = true;
-        let firmware_checksum = crc.crc32(fs.readFileSync(this.firmwarePath));
+        let firmwareChecksum = crc32(fs.readFileSync(this.firmwarePath));
         while (error) {
             await this.put('c');
             error = await this.waitOk();
             if (!error) {
-                this.put(firmware_checksum);
+                this.putInt(firmwareChecksum);
                 error = await this.waitOk();
             }
         }
@@ -223,6 +222,7 @@ class HepiaLight2Prog {
             if (await this.checkVersion()) {
                 this.progressCallback(0, 'Resetting device');
                 await this.callBootloader();
+                await new Promise(resolve => setTimeout(resolve, 2000));
                 this.progressCallback(0, 'Handshaking with device');
                 await this.handshake();
                 this.progressCallback(0, 'Programming device');
