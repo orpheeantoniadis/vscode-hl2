@@ -4,6 +4,16 @@ All notable changes to the "hl2" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [v0.4.2]
+
+ * Test
+
+## [v0.4.1]
+
+ * !!! Working only in debug !!!
+ * Extension is now bundled with webpack
+ * Change crc module because the old one was not compatible with webpack
+
 ## [v0.4.0]
 
  * Add node serailport module
