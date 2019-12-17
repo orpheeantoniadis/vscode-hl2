@@ -60,14 +60,7 @@ class HepiaLight2Prog {
     }
 
     async checkBootloaderMode() {
-        return new Promise(async (resolve) => {
-            const timeoutCallback = () => {
-                this.board.destroy();
-                this.bootloaderMode = true;
-                console.log('Board is in bootloader mode')
-                resolve();
-            };
-
+        try {
             this.board = new HepiaLight2Com(
                 data => this.onData(data),
                 err => this.onError(err),
@@ -75,15 +68,25 @@ class HepiaLight2Prog {
             );
             await this.board.connect();
             await this.board.executeCommands([CHAR_CTRL_C, EOL]);
-            let timeout = setTimeout(timeoutCallback, 1000);
-            let data = await this.board.read();
-            while (data != '>>> \r' && !this.bootloaderMode) {
-                data = await this.board.read();
-            }
-            clearTimeout(timeout);
-            await this.board.destroy();
-            resolve();
-        });
+            return new Promise(async (resolve) => {
+                const timeoutCallback = () => {
+                    this.destroy();
+                    this.bootloaderMode = true;
+                    console.log('Board is in bootloader mode')
+                    resolve();
+                };
+                let timeout = setTimeout(timeoutCallback, 1000);
+                let data = await this.board.read();
+                while (data != '>>> \r' && !this.bootloaderMode) {
+                    data = await this.board.read();
+                }
+                clearTimeout(timeout);
+                await this.destroy();
+                resolve();
+            });
+        } catch (err) {
+            throw err;
+        }
     }
 
     async checkVersion() {
@@ -101,7 +104,7 @@ class HepiaLight2Prog {
             }
             data = await this.board.read();
             let boardVersion = data.substring(1, data.length-2);
-            await this.board.destroy();
+            await this.destroy();
             return semver.gt(this.firmwareVersion, boardVersion);
         }
         return true;
@@ -117,7 +120,7 @@ class HepiaLight2Prog {
             await this.board.connect();
             await this.board.executeCommands([CHAR_CTRL_C, 'update()', EOL]);
             await new Promise(resolve => setTimeout(resolve, 2000));
-            await this.board.destroy();
+            await this.destroy();
             this.bootloaderMode = true;
         }
     }

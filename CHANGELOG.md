@@ -4,6 +4,15 @@ All notable changes to the "hl2" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [v0.4.0]
+
+ * Add node serailport module
+ * Extension no longer uses python scripts to communicate with a board
+ * Add a progress bar while updating the firmware
+ * Update buttons icons
+ * Micropython REPL is now entirely shown in the output window
+ * Update banner color
+
 ## [v0.3.8]
 
  * Update program script to fit with the new bootloader logic
