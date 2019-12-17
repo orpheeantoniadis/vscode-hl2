@@ -4,9 +4,13 @@ All notable changes to the "hl2" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [v0.4.5]
+
+ * !!! Test : do not use this version !!!
+
 ## [v0.4.4]
 
- * Test
+ * !!! Working only in debug !!!
 
 ## [v0.4.3]
 
@@ -24,6 +28,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [v0.4.0]
 
+ * !!! Working only in debug !!!
  * Add node serailport module
  * Extension no longer uses python scripts to communicate with a board
  * Add a progress bar while updating the firmware
