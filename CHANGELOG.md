@@ -4,21 +4,9 @@ All notable changes to the "hl2" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [v0.4.5]
+## [v0.4.x>1]
 
  * !!! Test : do not use this version !!!
-
-## [v0.4.4]
-
- * !!! Working only in debug !!!
-
-## [v0.4.3]
-
- * !!! Working only in debug !!!
-
-## [v0.4.2]
-
- * !!! Working only in debug !!!
 
 ## [v0.4.1]
 

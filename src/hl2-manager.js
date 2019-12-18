@@ -73,7 +73,6 @@ class HepiaLight2Manager {
                     progress.report({ increment: percent, message: message });
                     progressCounter = 0;
                 }
-                
             };
 
             await this.destroy();

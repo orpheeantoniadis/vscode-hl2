@@ -11,3 +11,10 @@ node_modules/**
 out/**
 src/**
 test/**
+
+!node_modules/@serialport
+!node_modules/bindings
+!node_modules/debug
+!node_modules/file-uri-to-path
+!node_modules/ms
+!node_modules/serialport
