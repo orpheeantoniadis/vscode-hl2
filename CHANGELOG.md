@@ -4,6 +4,10 @@ All notable changes to the "hl2" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [v0.5.1]
+
+ * Change update icon
+
 ## [v0.5.0]
 
  * Add node serialport module
