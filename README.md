@@ -5,7 +5,3 @@ hepiaLight2 is a programmable board used to learn programming to children. This 
 ## Features
 
 For the moment, the package only allows to upload a python file to the board's micropython REPL.
-
-## Requirements
-
-The only requirement is Python 3 installed on your computer.

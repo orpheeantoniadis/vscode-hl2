@@ -1,3 +1,5 @@
+'use babel';
+
 const vscode         = require('vscode');
 const Readline       = require('@serialport/parser-readline');
 const ByteLength     = require('@serialport/parser-byte-length');

@@ -4,25 +4,18 @@ All notable changes to the "hl2" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [v0.4.x>1]
+## [v0.5.0]
 
- * !!! Test : do not use this version !!!
-
-## [v0.4.1]
-
- * !!! Working only in debug !!!
- * Extension is now bundled with webpack
- * Change crc module because the old one was not compatible with webpack
-
-## [v0.4.0]
-
- * !!! Working only in debug !!!
- * Add node serailport module
+ * Add node serialport module
  * Extension no longer uses python scripts to communicate with a board
  * Add a progress bar while updating the firmware
  * Update buttons icons
  * Micropython REPL is now entirely shown in the output window
  * Update banner color
+
+## [v0.4.x]
+
+ * !!! Test : do not use this version !!!
 
 ## [v0.3.8]
 

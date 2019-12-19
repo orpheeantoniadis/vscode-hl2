@@ -1,3 +1,5 @@
+'use babel';
+
 const vscode           = require('vscode');
 const HepiaLight2Com   = require('./hl2-com.js');
 const HepiaLight2Prog  = require('./hl2-prog.js');

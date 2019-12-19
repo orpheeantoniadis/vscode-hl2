@@ -1,8 +1,17 @@
-dist
+# Compiled files
+/lib
+
+# Node JS
 node_modules
-.vscode-test/
-*.vsix
 package-lock.json
-__pycache__
-.DS_Store
+
+# VS Code
 .vscode
+*.vsix
+.vscode-test
+
+# Python
+__pycache__
+
+# Mac OS
+.DS_Store

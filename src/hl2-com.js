@@ -1,3 +1,5 @@
+'use babel';
+
 const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
 

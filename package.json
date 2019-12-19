@@ -2,24 +2,31 @@
     "name": "hl2",
     "displayName": "hepiaLight2",
     "description": "Run Python code on hepiaLight2",
-    "version": "0.4.17",
+    "version": "0.5.0",
     "publisher": "orpheeantoniadis",
     "repository": "https://github.com/orpheeantoniadis/vscode-hl2.git",
-    "icon": "icon.png",
+    "icon": "resources/images/logo.png",
     "galleryBanner": {
         "color": "#046594",
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.40.0"
+        "vscode": "^1.31.0"
     },
+    "keywords": [
+        "hepialight",
+        "hepia",
+        "micropython",
+        "education",
+        "iot"
+    ],
     "categories": [
         "Other"
     ],
     "activationEvents": [
         "*"
     ],
-    "main": "./dist/extension.js",
+    "main": "./hl2",
     "contributes": {
         "commands": [
             {
@@ -77,42 +84,59 @@
         }
     },
     "scripts": {
-        "vscode:prepublish": "webpack --mode production",
-        "postinstall": "node_modules/.bin/electron-builder install-app-deps",
-        "pack": "electron-builder --dir",
-        "dist": "electron-builder",
-        "webpack": "webpack --mode development",
-        "webpack-dev": "webpack --mode development --watch",
-        "test": "node ./test/runTest.js",
-        "test-compile": "tsc -p ./"
+        "postinstall": "pwsh -nop -f ./scripts/mp-download.ps1 -copyonly",
+        "download-native": "pwsh -nop -f ./scripts/mp-download.ps1 -ElectronVersions 7.1.1 -IgnoreNodeVersion",
+        "build": "babel src --out-dir lib --source-maps",
+        "build-dev": "babel src --out-dir lib --source-maps --watch",
+        "package-prep": "npm install vsce -g",
+        "package": "vsce package",
+        "vscode:prepublish": "npm ci && npm prune"
     },
-    "devDependencies": {
-        "@types/glob": "^7.1.1",
-        "@types/mocha": "^5.2.6",
-        "@types/node": "^12.12.17",
-        "@types/vscode": "^1.40.0",
-        "electron": "^6.1.6",
-        "electron-builder": "^21.2.0",
-        "electron-compilers": "^5.9.0",
-        "electron-prebuilt-compile": "^4.0.0",
-        "electron-rebuild": "^1.8.6",
-        "eslint": "^5.13.0",
-        "glob": "^7.1.4",
-        "mocha": "^6.1.4",
-        "prebuild-install": "^2.4.1",
-        "typescript": "^3.3.1",
-        "vscode-test": "^1.2.0",
-        "webpack": "4.41.3",
-        "webpack-cli": "3.3.10",
-        "ts-loader": "6.2.1"
+    "backup-required-to-include-binaries": {
+        "postinstall": "pwsh -nop -f ./scripts/mp-download.ps1 -copyonly",
+        "vscode:prepublish": "npm ci && npm prune"
     },
     "dependencies": {
+        "binascii": "0.0.2",
+        "bindings": "^1.5.0",
+        "commander": "4.0.1",
+        "copy-paste": "^1.3.0",
         "crc": "3.8.0",
-        "electron": "^6.1.6",
-        "electron-builder": "^21.2.0",
+        "crypto-js": "^3.1.9-1",
+        "debug": "^4.1.1",
+        "electron": "^6.1.2",
+        "electron-rebuild": "^1.8.6",
+        "element-resize-detector": "1.1.15",
         "glob": "^7.1.4",
-        "prebuild-install": "^2.4.1",
+        "lie": "^3.3.0",
+        "nan": "2.14.0",
+        "ncp": "^2.0.0",
+        "node-abi": "^2.12.0",
+        "object.assign": "^4.1.0",
+        "ora": "^4.0.3",
+        "promirepl": "^2.0.1",
+        "prompt-list": "^3.2.0",
+        "rxjs": "^6.5.3",
+        "safe-buffer": "^5.2.0",
         "semver": "6.3.0",
-        "serialport": "^8.0.5"
+        "serialport": "^8.0.5",
+        "spdx-correct": "^3.1.0",
+        "spdx-exceptions": "^2.2.0",
+        "telnet-client": "^1.2.3",
+        "typescript": "^3.7.2",
+        "utf8": "^3.0.0",
+        "xterm": "^4.2.0"
+    },
+    "devDependencies": {
+        "@types/mocha": "^5.2.7",
+        "@types/node": "^12.12.11",
+        "babel-cli": "^6.26.0",
+        "babel-core": "^6.26.3",
+        "babel-preset-es2015": "6.24.1",
+        "chai": "^4.2.0",
+        "eslint": "^6.7.1",
+        "mocha": "^6.2.2",
+        "prebuild-install": "^5.3.3",
+        "vscode": "^1.1.36"
     }
 }
