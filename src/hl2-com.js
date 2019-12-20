@@ -6,7 +6,7 @@ const Readline = require('@serialport/parser-readline');
 const VENDOR_ID = '1fc9';
 const PRODUCT_ID = '0083';
 
-const INSTRUCTION_INTERVAL = 1;
+const INSTRUCTION_INTERVAL = 10;
 const EOL = '\x0A\x0D';
 const CHAR_CTRL_C = '\x03';
 const CHAR_CTRL_D = '\x04';

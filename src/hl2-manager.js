@@ -7,6 +7,8 @@ const HepiaLight2Prog  = require('./hl2-prog.js');
 
 const EOL         = '\x0D\x0A';
 const CHAR_CTRL_C = '\x03';
+const CHAR_CTRL_D = '\x04';
+const CHAR_CTRL_E = '\x05';
 
 class HepiaLight2Manager {
     constructor(outputChannel) {
@@ -67,17 +69,17 @@ class HepiaLight2Manager {
             var commands = [
                 CHAR_CTRL_C,
                 EOL,
-                "file = open('main.py', 'w+')",
-                EOL,
+                CHAR_CTRL_E,
+                "file = open('main.py', 'w+')\r"
             ];
-            const data = fs.readFileSync(filepath, 'utf8');
+            let data = fs.readFileSync(filepath, 'utf8');
             for (let line of data.split('\n')) {
-                
-                commands.push(String.raw`file.write('${line}\n')`);
-                commands.push(EOL)
+                line = line.split(String.raw`'`).join(String.raw`\'`);
+                line = line.split(String.raw`"`).join(String.raw`\"`);
+                commands.push(String.raw`file.write('${line}\n')` + '\r');
             }
-            commands.push('file.close()')
-            commands.push(EOL)
+            commands.push('file.close()\r')
+            commands.push(CHAR_CTRL_D);
 
             this.board = new HepiaLight2Com(
                 () => {},
