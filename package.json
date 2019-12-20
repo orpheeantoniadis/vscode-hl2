@@ -1,8 +1,8 @@
 {
     "name": "hl2",
     "displayName": "hepiaLight2",
-    "description": "Run Python code on hepiaLight2",
-    "version": "0.5.1",
+    "description": "hepiaLight2 for Visual Studio Code",
+    "version": "0.6.0",
     "publisher": "orpheeantoniadis",
     "repository": "https://github.com/orpheeantoniadis/vscode-hl2.git",
     "icon": "resources/images/logo.png",
@@ -30,54 +30,83 @@
     "contributes": {
         "commands": [
             {
-                "command": "extension.run",
-                "title": "Run current file on hepiaLight2",
+                "command": "hl2.run",
+                "title": "Run current file on hepialight",
                 "category": "hepiaLight2",
                 "icon": {
-                    "light": "./resources/icons/light/debug-start.svg",
-                    "dark": "./resources/icons/dark/debug-start.svg"
+                    "light": "./resources/icons/light/run.svg",
+                    "dark": "./resources/icons/dark/run.svg"
                 }
             },
             {
-                "command": "extension.update",
-                "title": "Update hepiaLight2",
+                "command": "hl2.update",
+                "title": "Update hepialight",
                 "category": "hepiaLight2",
                 "icon": {
-                    "light": "./resources/icons/light/debug-restart.svg",
-                    "dark": "./resources/icons/dark/debug-restart.svg"
+                    "light": "./resources/icons/light/update.svg",
+                    "dark": "./resources/icons/dark/update.svg"
+                }
+            },
+            {
+                "command": "hl2.upload",
+                "title": "Upload current file on hepialight's main",
+                "category": "hepiaLight2",
+                "icon": {
+                    "light": "./resources/icons/light/upload.svg",
+                    "dark": "./resources/icons/dark/upload.svg"
                 }
             }
         ],
         "keybindings": [
             {
-                "command": "extension.run",
+                "command": "hl2.run",
                 "key": "ctrl+shift+r",
                 "mac": "cmd+shift+r"
+            },
+            {
+                "command": "hl2.upload",
+                "key": "ctrl+shift+s",
+                "mac": "cmd+shift+s"
             }
         ],
         "menus": {
             "explorer/context": [
                 {
                     "when": "resourceLangId == python",
-                    "command": "extension.run",
+                    "command": "hl2.run",
+                    "group": "navigation"
+                },
+                {
+                    "when": "resourceLangId == python",
+                    "command": "hl2.upload",
                     "group": "navigation"
                 }
             ],
             "editor/context": [
                 {
                     "when": "resourceLangId == python",
-                    "command": "extension.run",
+                    "command": "hl2.run",
+                    "group": "navigation"
+                },
+                {
+                    "when": "resourceLangId == python",
+                    "command": "hl2.upload",
                     "group": "navigation"
                 }
             ],
             "editor/title": [
                 {
                     "when": "resourceLangId == python",
-                    "command": "extension.run",
+                    "command": "hl2.run",
                     "group": "navigation"
                 },
                 {
-                    "command": "extension.update",
+                    "command": "hl2.update",
+                    "group": "navigation"
+                },
+                {
+                    "when": "resourceLangId == python",
+                    "command": "hl2.upload",
                     "group": "navigation"
                 }
             ]

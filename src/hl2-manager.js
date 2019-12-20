@@ -1,8 +1,12 @@
 'use babel';
 
 const vscode           = require('vscode');
+const fs               = require('fs');
 const HepiaLight2Com   = require('./hl2-com.js');
 const HepiaLight2Prog  = require('./hl2-prog.js');
+
+const EOL         = '\x0D\x0A';
+const CHAR_CTRL_C = '\x03';
 
 class HepiaLight2Manager {
     constructor(outputChannel) {
@@ -54,6 +58,36 @@ class HepiaLight2Manager {
             await this.board.executeRaw(code);
         } catch (err) {
             this.sendErr(`Cannot write to board: ${err}`);
+        }
+    }
+
+    async upload(filepath) {
+        await this.destroy();
+        try {
+            var commands = [
+                CHAR_CTRL_C,
+                EOL,
+                "file = open('main.py', 'w+')",
+                EOL,
+            ];
+            const data = fs.readFileSync(filepath, 'utf8');
+            for (let line of data.split('\n')) {
+                
+                commands.push(String.raw`file.write('${line}\n')`);
+                commands.push(EOL)
+            }
+            commands.push('file.close()')
+            commands.push(EOL)
+
+            this.board = new HepiaLight2Com(
+                () => {},
+                err => this.sendErr(err)
+            );
+            await this.board.connect();
+            await this.board.executeCommands(commands);
+            vscode.window.showInformationMessage('File imported')
+        } catch (err) {
+            this.sendErr(`Cannot import file to board: ${err}`);
         }
     }
 

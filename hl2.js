@@ -23,7 +23,7 @@ function activate(context) {
             HepiaLight2Manager = require('./lib/hl2-manager.js');
             var  hepiaLight2Manager = new HepiaLight2Manager(vscode.window.createOutputChannel('HL2 REPL'));
 
-            let run_disposable = vscode.commands.registerCommand('extension.run', function () {
+            let run_disposable = vscode.commands.registerCommand('hl2.run', function () {
                 let editor = vscode.window.activeTextEditor;
                 if (editor) {
                     let document = editor.document;
@@ -36,15 +36,29 @@ function activate(context) {
                     }
                 }
             });
-            let update_disposable = vscode.commands.registerCommand('extension.update', function () {
-                hepiaLight2Manager.outputChannel.hide();
+            let upload_disposable = vscode.commands.registerCommand('hl2.upload', function () {
+                let editor = vscode.window.activeTextEditor;
+                if (editor) {
+                    let document = editor.document;
+                    try {
+                        hepiaLight2Manager.upload(document.fileName);
+                    } catch (err) {
+                        vscode.window.showErrorMessage(err.message);
+                    }
+                }
+            });
+            let update_disposable = vscode.commands.registerCommand('hl2.update', function () {
                 try {
                     hepiaLight2Manager.update();
                 } catch (err) {
                     vscode.window.showErrorMessage(err.message);
                 }
             });
-            context.subscriptions.push(run_disposable, update_disposable);
+            context.subscriptions.push(
+                run_disposable,
+                upload_disposable,
+                update_disposable
+            );
         }
     });
 }

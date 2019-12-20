@@ -4,6 +4,11 @@ All notable changes to the "hl2" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [v0.6.0]
+
+ * Add a command to upload the current file to the main file of the board
+ * Bug correction
+
 ## [v0.5.1]
 
  * Change update icon

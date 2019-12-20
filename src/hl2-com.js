@@ -97,7 +97,6 @@ class HepiaLight2Com {
             EOL,
             CHAR_CTRL_E
         ];
-
         for (let line of code.split('\n')) {
             commands.push(line + '\r');
         }

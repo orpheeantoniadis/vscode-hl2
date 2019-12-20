@@ -77,7 +77,7 @@ class HepiaLight2Prog {
                     console.log('Board is in bootloader mode')
                     resolve();
                 };
-                let timeout = setTimeout(timeoutCallback, 1000);
+                let timeout = setTimeout(timeoutCallback, 2000);
                 let data = await this.board.read();
                 while (data != '>>> \r' && !this.bootloaderMode) {
                     data = await this.board.read();
