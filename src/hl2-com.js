@@ -19,8 +19,8 @@ class HepiaLight2Com {
         this.parser = parser;
         this.rx = [];
         if (process.platform === 'win32') {
-            VENDOR_IDS.map(vendorId => vendorId.toUpperCase());
-            PRODUCT_IDS.map(productId => productId.toUpperCase());
+            VENDOR_IDS = VENDOR_IDS.map(vendorId => vendorId.toUpperCase());
+            PRODUCT_IDS = PRODUCT_IDS.map(productId => productId.toUpperCase());
         }
     }
 
