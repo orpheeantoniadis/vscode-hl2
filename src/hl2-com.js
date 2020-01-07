@@ -3,14 +3,14 @@
 const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
 
-const VENDOR_ID = '1fc9';
-const PRODUCT_ID = '0083';
-
 const INSTRUCTION_INTERVAL = 10;
-const EOL = '\x0A\x0D';
+const EOL         = '\x0A\x0D';
 const CHAR_CTRL_C = '\x03';
 const CHAR_CTRL_D = '\x04';
 const CHAR_CTRL_E = '\x05';
+
+var VENDOR_ID = process.platform === 'win32' ? '1FC9' : '1fc9';
+var PRODUCT_ID = '0083';
 
 class HepiaLight2Com {
     constructor(dataCb, errorCb, parser = new Readline('\n')) {
