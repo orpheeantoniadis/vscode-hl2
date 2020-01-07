@@ -107,7 +107,11 @@ class HepiaLight2Prog {
             data = await this.board.read();
             let boardVersion = data.substring(1, data.length-2);
             await this.destroy();
-            return semver.gt(this.firmwareVersion, boardVersion);
+            if (semver.valid(boardVersion)) {
+                return semver.gt(this.firmwareVersion, boardVersion);
+            } else {
+                throw "Invalid Version : The board's firmware version must be greater than or equal to 0.4.0 to use this functionality"
+            }
         }
         return true;
     }

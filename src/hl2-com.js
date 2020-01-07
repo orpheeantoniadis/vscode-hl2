@@ -9,8 +9,8 @@ const CHAR_CTRL_C = '\x03';
 const CHAR_CTRL_D = '\x04';
 const CHAR_CTRL_E = '\x05';
 
-var VENDOR_ID = process.platform === 'win32' ? '1FC9' : '1fc9';
-var PRODUCT_ID = '0083';
+var VENDOR_IDS  = ['1fc9', '1f00'];
+var PRODUCT_IDS = ['0083', '2012'];
 
 class HepiaLight2Com {
     constructor(dataCb, errorCb, parser = new Readline('\n')) {
@@ -18,13 +18,19 @@ class HepiaLight2Com {
         this.errorCb = errorCb;
         this.parser = parser;
         this.rx = [];
+        if (process.platform === 'win32') {
+            VENDOR_IDS.map(vendorId => vendorId.toUpperCase());
+            PRODUCT_IDS.map(productId => productId.toUpperCase());
+        }
     }
 
     async find() {
         const ports = await SerialPort.list();
-        return ports.find(
-            port => port.vendorId == VENDOR_ID && port.productId == PRODUCT_ID
-        );
+        return ports.find(function(port) {
+            let indexOfVendorId = VENDOR_IDS.indexOf(port.vendorId);
+            let indexOfProductId = PRODUCT_IDS.indexOf(port.productId);
+            return indexOfVendorId == indexOfProductId && indexOfVendorId != -1;
+        });
     }
 
     async connect() {
