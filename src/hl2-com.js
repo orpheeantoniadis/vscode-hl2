@@ -3,7 +3,7 @@
 const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
 
-const INSTRUCTION_INTERVAL = 10;
+const INSTRUCTION_INTERVAL = 100;
 const EOL         = '\x0A\x0D';
 const CHAR_CTRL_C = '\x03';
 const CHAR_CTRL_D = '\x04';

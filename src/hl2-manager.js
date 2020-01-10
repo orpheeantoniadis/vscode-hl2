@@ -68,18 +68,18 @@ class HepiaLight2Manager {
         try {
             var commands = [
                 CHAR_CTRL_C,
-                EOL,
-                CHAR_CTRL_E,
-                "file = open('main.py', 'w+')\r"
+                "file = open('main.py', 'w+')",
+                EOL
             ];
             let data = fs.readFileSync(filepath, 'utf8');
             for (let line of data.split('\n')) {
                 line = line.split(String.raw`'`).join(String.raw`\'`);
                 line = line.split(String.raw`"`).join(String.raw`\"`);
-                commands.push(String.raw`file.write('${line}\n')` + '\r');
+                commands.push(String.raw`file.write('${line}\n')`);
+                commands.push(EOL);
             }
-            commands.push('file.close()\r')
-            commands.push(CHAR_CTRL_D);
+            commands.push('file.close()');
+            commands.push(EOL);
 
             this.board = new HepiaLight2Com(
                 () => {},
