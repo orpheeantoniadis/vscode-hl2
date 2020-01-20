@@ -85,9 +85,29 @@ class HepiaLight2Manager {
                 () => {},
                 err => this.sendErr(err)
             );
-            await this.board.connect();
-            await this.board.executeCommands(commands);
-            vscode.window.showInformationMessage('File imported')
+
+            vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: "Uploading file to device's main.py",
+                cancellable: false
+            }, async (progress, token) => {
+                let progressCounter = 0;
+                let total = commands.length;
+                let percentCount = 0;
+                const progressCallback = () => {
+                    progressCounter++;
+                    let percent = progressCounter * 100.0 / total;
+                    if (percent >= 1) {
+                        percentCount += percent;
+                        progress.report({ increment: percent, message: `${Math.round(percentCount)}%` });
+                        progressCounter = 0;
+                    }
+                };
+
+                await this.board.connect();
+                await this.board.executeIntervalCommands(commands, 100, progressCallback);
+                vscode.window.showInformationMessage('File uploaded to main.py');
+            });
         } catch (err) {
             this.sendErr(`Cannot import file to board: ${err}`);
         }

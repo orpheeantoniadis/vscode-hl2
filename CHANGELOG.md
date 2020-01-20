@@ -4,6 +4,12 @@ All notable changes to the "hl2" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [v0.6.3]
+
+ * Fix a bug with file uploader
+ * Add a progress bar to file uploader
+ * Add firmware version 0.4.2
+
 ## [v0.6.2]
 
  * Fix a bug with windows support

@@ -3,7 +3,7 @@
 const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
 
-const INSTRUCTION_INTERVAL = 100;
+const INSTRUCTION_INTERVAL = 10;
 const EOL         = '\x0A\x0D';
 const CHAR_CTRL_C = '\x03';
 const CHAR_CTRL_D = '\x04';
@@ -73,7 +73,22 @@ class HepiaLight2Com {
         });
     }
 
-    async executeCommands(commands) {
+    async sendKeyboardInterrupt() {
+        this.write(CHAR_CTRL_C);
+    }
+
+    async executeCommand(command) {
+        this.write(command + "\r\n\r");
+        let data = '';
+        let stdout = [];
+        while (await this.read() != `>>> ${command}` + '\r');
+        while ((data = await this.read()) != '>>> \r') {
+            stdout.push(data)
+        }
+        return stdout;
+    }
+
+    async executeIntervalCommands(commands, interval=INSTRUCTION_INTERVAL, progressCallback=null) {
         return new Promise(resolve => {
             const executeNext = () => {
                 if (this.errorRaised || commands.length == 0) {
@@ -87,11 +102,14 @@ class HepiaLight2Com {
                 }
                 let cmd = commands.shift();
                 this.write(cmd);
+                if (progressCallback != null) {
+                    progressCallback();
+                }
             };
 
             this.executionInterval = setInterval(
                 executeNext,
-                INSTRUCTION_INTERVAL
+                interval
             );
         });
     }
@@ -112,7 +130,7 @@ class HepiaLight2Com {
 
     async executeRaw(data) {
         let commandsToExecute = this.splitCodeIntoCommands(data);
-        return this.executeCommands(commandsToExecute);
+        return this.executeIntervalCommands(commandsToExecute);
     }
 
     onOpen() {

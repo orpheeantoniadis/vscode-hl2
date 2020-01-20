@@ -69,7 +69,7 @@ class HepiaLight2Prog {
                 new Readline('\n')
             );
             await this.board.connect();
-            await this.board.executeCommands([CHAR_CTRL_C, EOL]);
+            await this.board.executeIntervalCommands([CHAR_CTRL_C, EOL]);
             return new Promise(async (resolve) => {
                 const timeoutCallback = () => {
                     this.destroy();
@@ -99,7 +99,7 @@ class HepiaLight2Prog {
                 new Readline('\n')
             );
             await this.board.connect();
-            await this.board.executeCommands([CHAR_CTRL_C, 'version()', EOL]);
+            await this.board.executeIntervalCommands([CHAR_CTRL_C, 'version()', EOL]);
             let data = await this.board.read();
             while (data != '>>> version()\r') {
                 data = await this.board.read();
@@ -124,7 +124,7 @@ class HepiaLight2Prog {
                 new Readline('\n')
             );
             await this.board.connect();
-            await this.board.executeCommands([CHAR_CTRL_C, 'update()', EOL]);
+            await this.board.executeIntervalCommands([CHAR_CTRL_C, 'update()', EOL]);
             await this.destroy();
             this.bootloaderMode = true;
         }
