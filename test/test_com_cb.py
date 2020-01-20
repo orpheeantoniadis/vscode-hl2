@@ -25,70 +25,50 @@ def blink_screen(blink_count=5, color=ROUGE, interval_sec=0.1):
         eteindre_tout()
         delai(interval_sec)
 
-def touch_so_cb():
+def com_nord_cb():
     global count
-    arrow((1, 1), 'UP', VERT)
+    arrow((4, 7), 'UP', VERT)
     count[0] = 1
 
-def touch_se_cb():
+def com_sud_cb():
     global count
-    arrow((6, 1), 'UP', VERT)
+    arrow((4, 1), 'DOWN', VERT)
     count[1] = 1
 
-def touch_no_cb():
+def com_est_cb():
     global count
-    arrow((1, 7), 'UP', VERT)
+    arrow((8, 3), 'RIGHT', VERT)
     count[2] = 1
 
-def touch_ne_cb():
+def com_ouest_cb():
     global count
-    arrow((6, 7), 'UP', VERT)
+    arrow((1, 3), 'LEFT', VERT)
     count[3] = 1
 
-def test_uart():
+def test_com():
     global count
     arrow((1, 3), 'LEFT', ROUGE)
     arrow((8, 3), 'RIGHT', ROUGE)
     arrow((4, 7), 'UP', ROUGE)
     arrow((4, 1), 'DOWN', ROUGE)
     count = [0] * 4
-    hl2.touch.attach(0, touch_so_cb)
-    hl2.touch.attach(1, touch_se_cb)
-    hl2.touch.attach(2, touch_no_cb)
-    hl2.touch.attach(3, touch_ne_cb)
+    hl2.com.attach(NORD, com_nord_cb)
+    hl2.com.attach(SUD, com_sud_cb)
+    hl2.com.attach(EST, com_est_cb)
+    hl2.com.attach(OUEST, com_ouest_cb)
 
     while sum(count) < 4:
-        pass
+        envoyer_msg(NORD, 'P')
+        envoyer_msg(SUD, 'P')
+        envoyer_msg(EST, 'P')
+        envoyer_msg(OUEST, 'P')
 
-    hl2.touch.detach(0)
-    hl2.touch.detach(1)
-    hl2.touch.detach(2)
-    hl2.touch.detach(3)
-    blink_screen(color=VERT)
-
-def test_touch():
-    global count
-
-    arrow((1, 1), 'UP', ROUGE)
-    arrow((1, 7), 'UP', ROUGE)
-    arrow((6, 1), 'UP', ROUGE)
-    arrow((6, 7), 'UP', ROUGE)
-
-    hl2.touch.attach(0, touch_so_cb)
-    hl2.touch.attach(1, touch_se_cb)
-    hl2.touch.attach(2, touch_no_cb)
-    hl2.touch.attach(3, touch_ne_cb)
-
-    while sum(count) < 4:
-        pass
-
-    hl2.touch.detach(0)
-    hl2.touch.detach(1)
-    hl2.touch.detach(2)
-    hl2.touch.detach(3)
-
+    hl2.com.detach(NORD)
+    hl2.com.detach(SUD)
+    hl2.com.detach(EST)
+    hl2.com.detach(OUEST)
     blink_screen(color=VERT)
 
 if __name__ == '__main__':
-    test_touch()
+    test_com()
     eteindre_tout()

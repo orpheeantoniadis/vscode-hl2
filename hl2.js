@@ -15,7 +15,7 @@ function prepareSerialPort(cb) {
 function activate(context) {
     prepareSerialPort(function(error) {
         if (error) {
-            var err_mess = "There was an error with your serialport module, Pymakr will likely not work properly. Please try to install again or report an issue on our github (see developer console for details)";
+            var err_mess = "There was an error with your serialport module. The extension will likely not work properly. Please try to install again or report an issue on our github.";
             vscode.window.showErrorMessage(err_mess);
             console.log(err_mess);
             console.log(error);
