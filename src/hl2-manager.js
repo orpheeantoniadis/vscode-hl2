@@ -2,7 +2,7 @@
 
 const vscode           = require('vscode');
 const fs               = require('fs');
-const HepiaLight2Com   = require('./hl2-com.js');
+const hl2_com   = require('./hl2-com.js');
 const HepiaLight2Prog  = require('./hl2-prog.js');
 
 const EOL         = '\x0D\x0A';
@@ -49,10 +49,18 @@ class HepiaLight2Manager {
         }
     }
 
+    async connect() {
+        let ports = await hl2_com.find_all();
+        vscode.window.showQuickPick(ports).then(val => {
+            vscode.window.showInformationMessage(`Connect to ${val}`);
+        });
+        console.log(ports);
+    }
+
     async execute(code) {
         await this.destroy();
         try {
-            this.board = new HepiaLight2Com(
+            this.board = new hl2_com.HepiaLight2Com(
                 line => this.sendEcho(line),
                 err => this.sendErr(err)
             );
@@ -81,7 +89,7 @@ class HepiaLight2Manager {
             commands.push('file.close()');
             commands.push(EOL);
 
-            this.board = new HepiaLight2Com(
+            this.board = new hl2_com.HepiaLight2Com(
                 () => {},
                 err => this.sendErr(err)
             );

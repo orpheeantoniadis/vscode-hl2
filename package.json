@@ -30,8 +30,17 @@
     "contributes": {
         "commands": [
             {
+                "command": "hl2.connect",
+                "title": "hepialight : connect",
+                "category": "hepiaLight2",
+                "icon": {
+                    "light": "./resources/icons/light/plug.svg",
+                    "dark": "./resources/icons/dark/plug.svg"
+                }
+            },
+            {
                 "command": "hl2.run",
-                "title": "Run current file on hepialight",
+                "title": "hepialight : run file",
                 "category": "hepiaLight2",
                 "icon": {
                     "light": "./resources/icons/light/run.svg",
@@ -40,7 +49,7 @@
             },
             {
                 "command": "hl2.update",
-                "title": "Update hepialight",
+                "title": "hepialight : update",
                 "category": "hepiaLight2",
                 "icon": {
                     "light": "./resources/icons/light/update.svg",
@@ -49,7 +58,7 @@
             },
             {
                 "command": "hl2.upload",
-                "title": "Upload current file on hepialight's main",
+                "title": "hepialight : upload file",
                 "category": "hepiaLight2",
                 "icon": {
                     "light": "./resources/icons/light/upload.svg",
@@ -95,6 +104,11 @@
                 }
             ],
             "editor/title": [
+                {
+                    "when": "resourceLangId == python",
+                    "command": "hl2.connect",
+                    "group": "navigation"
+                },
                 {
                     "when": "resourceLangId == python",
                     "command": "hl2.run",

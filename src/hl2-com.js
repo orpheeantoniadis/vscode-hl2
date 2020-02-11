@@ -12,6 +12,33 @@ const CHAR_CTRL_E = '\x05';
 var VENDOR_IDS  = ['1fc9', '1f00'];
 var PRODUCT_IDS = ['0083', '2012'];
 
+async function find() {
+    const ports = await SerialPort.list();
+    return ports.find(function(port) {
+        let indexOfVendorId = VENDOR_IDS.indexOf(port.vendorId);
+        let indexOfProductId = PRODUCT_IDS.indexOf(port.productId);
+        return indexOfVendorId == indexOfProductId && indexOfVendorId != -1;
+    });
+}
+
+async function find_all() {
+    const portList = await SerialPort.list();
+    let ports = [];
+    return new Promise((resolve, reject) => {
+        portList.forEach(port => {
+            let indexOfVendorId = VENDOR_IDS.indexOf(port.vendorId);
+            let indexOfProductId = PRODUCT_IDS.indexOf(port.productId);
+            if (indexOfVendorId == indexOfProductId && indexOfVendorId != -1) {
+                ports.push(port.path);
+            }
+        });
+        if (ports.length == 0) {
+            reject('No hepiaLight2 found');
+        }
+        resolve(ports);
+    });
+}
+
 class HepiaLight2Com {
     constructor(dataCb, errorCb, parser = new Readline('\n')) {
         this.dataCb = dataCb;
@@ -24,19 +51,11 @@ class HepiaLight2Com {
         }
     }
 
-    async find() {
-        const ports = await SerialPort.list();
-        return ports.find(function(port) {
-            let indexOfVendorId = VENDOR_IDS.indexOf(port.vendorId);
-            let indexOfProductId = PRODUCT_IDS.indexOf(port.productId);
-            return indexOfVendorId == indexOfProductId && indexOfVendorId != -1;
-        });
-    }
-
     async connect() {
-        const comPort = await this.find();
+        const comPort = await find();
         if (!comPort) throw 'No hepiaLight2 found';
         this.port = new SerialPort(comPort.path);
+        this.port.on('error', err => this.onError(err));
         this.port.on('open', () => this.onOpen());
     }
 
@@ -137,7 +156,6 @@ class HepiaLight2Com {
         this.port.pipe(this.parser);
         this.port.on('close', () => this.onClose());
         this.parser.on('data', data => this.onData(data));
-        this.port.on('error', err => this.onError(err));
     }
 
     onClose() {
@@ -157,4 +175,7 @@ class HepiaLight2Com {
     }
 }
 
-module.exports = HepiaLight2Com;
+module.exports = {
+    find_all,
+    HepiaLight2Com
+};
