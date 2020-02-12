@@ -2,8 +2,8 @@
 
 const vscode           = require('vscode');
 const fs               = require('fs');
-const hl2_com   = require('./hl2-com.js');
-const HepiaLight2Prog  = require('./hl2-prog.js');
+const hl2_com          = require('./hl2-com.js');
+const hl2_prog         = require('./hl2-prog.js');
 
 const EOL         = '\x0D\x0A';
 const CHAR_CTRL_C = '\x03';
@@ -54,7 +54,6 @@ class HepiaLight2Manager {
         vscode.window.showQuickPick(ports).then(val => {
             vscode.window.showInformationMessage(`Connect to ${val}`);
         });
-        console.log(ports);
     }
 
     async execute(code) {
@@ -122,29 +121,32 @@ class HepiaLight2Manager {
     }
 
     async update() {
-        vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: 'Updating device',
-            cancellable: true
-        }, async (progress, token) => {
-            token.onCancellationRequested(() => {
-                this.destroy();
-                this.sendErr('Update canceled. Please disconnect and reconnect the board');
-			});
-            let progressCounter = 0;
-            const progressCallback = (increment, total, message) => {
-                progressCounter += increment;
-                let percent = progressCounter * 100.0 / total;
-                if (percent >= 1) {
-                    progress.report({ increment: percent, message: message });
-                    progressCounter = 0;
-                }
-            };
-
-            await this.destroy();
-            this.programmer = new HepiaLight2Prog(progressCallback);
-            await this.programmer.start();
-        });
+        try {
+            vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: 'Updating device',
+                cancellable: true
+            }, async (progress, token) => {
+                token.onCancellationRequested(() => {
+                    this.destroy();
+                    this.sendErr('Update canceled. Please disconnect and reconnect the board');
+                });
+                let progressCounter = 0;
+                const progressCallback = (increment, total, message) => {
+                    progressCounter += increment;
+                    let percent = progressCounter * 100.0 / total;
+                    if (percent >= 1) {
+                        progress.report({ increment: percent, message: message });
+                        progressCounter = 0;
+                    }
+                };
+                await this.destroy();
+                this.programmer = new hl2_prog.HepiaLight2Prog(progressCallback);
+                await this.programmer.start();
+            });
+        } catch (err) {
+            this.sendErr(`Cannot update board: ${err}`);
+        }
     }
 }
 

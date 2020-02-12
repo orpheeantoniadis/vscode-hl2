@@ -12,7 +12,7 @@ const CHAR_CTRL_E = '\x05';
 var VENDOR_IDS  = ['1fc9', '1f00'];
 var PRODUCT_IDS = ['0083', '2012'];
 
-async function find() {
+export async function find() {
     const ports = await SerialPort.list();
     return ports.find(function(port) {
         let indexOfVendorId = VENDOR_IDS.indexOf(port.vendorId);
@@ -21,7 +21,7 @@ async function find() {
     });
 }
 
-async function find_all() {
+export async function find_all() {
     const portList = await SerialPort.list();
     let ports = [];
     return new Promise((resolve, reject) => {
@@ -39,7 +39,7 @@ async function find_all() {
     });
 }
 
-class HepiaLight2Com {
+export class HepiaLight2Com {
     constructor(dataCb, errorCb, parser = new Readline('\n')) {
         this.dataCb = dataCb;
         this.errorCb = errorCb;
@@ -133,7 +133,7 @@ class HepiaLight2Com {
         });
     }
 
-    splitCodeIntoCommands(code) {
+    async executeRaw(code) {
         let commands = [
             CHAR_CTRL_C,
             'eteindre_tout()',
@@ -144,12 +144,7 @@ class HepiaLight2Com {
             commands.push(line + '\r');
         }
         commands.push(CHAR_CTRL_D);
-        return commands;
-    }
-
-    async executeRaw(data) {
-        let commandsToExecute = this.splitCodeIntoCommands(data);
-        return this.executeIntervalCommands(commandsToExecute);
+        return this.executeIntervalCommands(commands);
     }
 
     onOpen() {
@@ -174,8 +169,3 @@ class HepiaLight2Com {
         this.dataCb(data.toString('utf8'));
     }
 }
-
-module.exports = {
-    find_all,
-    HepiaLight2Com
-};

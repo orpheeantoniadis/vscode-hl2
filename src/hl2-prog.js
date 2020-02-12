@@ -8,13 +8,13 @@ const path           = require('path');
 const fs             = require('fs');
 const semver         = require('semver');
 const { crc32 }      = require('crc');
-const HepiaLight2Com = require('./hl2-com.js');
+const hl2_com        = require('./hl2-com.js');
 
 const EOL             = '\x0A\x0D';
 const CHAR_CTRL_C     = '\x03';
 const DATA_CHUNK_SIZE = 256;
 
-class HepiaLight2Prog {
+export class HepiaLight2Prog {
     constructor(progressCallback) {
         this.board           = null;
         this.bootloaderMode  = false;
@@ -63,25 +63,22 @@ class HepiaLight2Prog {
 
     async checkBootloaderMode() {
         try {
-            this.board = new HepiaLight2Com(
+            this.board = new hl2_com.HepiaLight2Com(
                 data => this.onData(data),
                 err => this.onError(err),
                 new Readline('\n')
             );
             await this.board.connect();
-            await this.board.executeIntervalCommands([CHAR_CTRL_C, EOL]);
+            await this.board.sendKeyboardInterrupt();
             return new Promise(async (resolve) => {
                 const timeoutCallback = () => {
                     this.destroy();
                     this.bootloaderMode = true;
-                    console.log('Board is in bootloader mode')
+                    console.log('Board is in bootloader mode');
                     resolve();
                 };
                 let timeout = setTimeout(timeoutCallback, 2000);
-                let data = await this.board.read();
-                while (data != '>>> \r' && !this.bootloaderMode) {
-                    data = await this.board.read();
-                }
+                await this.board.executeCommand('');
                 clearTimeout(timeout);
                 await this.destroy();
                 resolve();
@@ -93,19 +90,15 @@ class HepiaLight2Prog {
 
     async checkVersion() {
         if (!this.bootloaderMode) {
-            this.board = new HepiaLight2Com(
+            this.board = new hl2_com.HepiaLight2Com(
                 data => this.onData(data),
                 err => this.onError(err),
                 new Readline('\n')
             );
             await this.board.connect();
-            await this.board.executeIntervalCommands([CHAR_CTRL_C, 'version()', EOL]);
-            let data = await this.board.read();
-            while (data != '>>> version()\r') {
-                data = await this.board.read();
-            }
-            data = await this.board.read();
-            let boardVersion = data.substring(1, data.length-2);
+            await this.board.sendKeyboardInterrupt();
+            let data = await this.board.executeCommand('version()');
+            let boardVersion = data[0].substring(1, data[0].length-2);
             await this.destroy();
             if (semver.valid(boardVersion)) {
                 return semver.gt(this.firmwareVersion, boardVersion);
@@ -118,13 +111,14 @@ class HepiaLight2Prog {
 
     async callBootloader() {
         if (!this.bootloaderMode) {
-            this.board = new HepiaLight2Com(
+            this.board = new hl2_com.HepiaLight2Com(
                 data => this.onData(data),
-                err => this.onError(err),
+                err  => this.onError(err),
                 new Readline('\n')
             );
             await this.board.connect();
-            await this.board.executeIntervalCommands([CHAR_CTRL_C, 'update()', EOL]);
+            await this.board.sendKeyboardInterrupt();
+            await this.board.executeCommand('update()');
             await this.destroy();
             this.bootloaderMode = true;
         }
@@ -149,7 +143,7 @@ class HepiaLight2Prog {
     }
 
     async handshake() {
-        this.board = new HepiaLight2Com(
+        this.board = new hl2_com.HepiaLight2Com(
             data => this.onData(data),
             err => this.onError(err),
             new ByteLength({length: 1})
@@ -253,5 +247,3 @@ class HepiaLight2Prog {
         vscode.window.showErrorMessage(err);
     }
 }
-
-module.exports = HepiaLight2Prog;
