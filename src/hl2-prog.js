@@ -10,17 +10,15 @@ const semver         = require('semver');
 const { crc32 }      = require('crc');
 const hl2_com        = require('./hl2-com.js');
 
-const EOL             = '\x0A\x0D';
-const CHAR_CTRL_C     = '\x03';
 const DATA_CHUNK_SIZE = 256;
 
 export class HepiaLight2Prog {
     constructor(progressCallback) {
-        this.board           = null;
-        this.bootloaderMode  = false;
-        this.firmwareVersion = '0.0.0';
-        this.firmwarePath    = '';
-        this.firmwareLength  = 0;
+        this.board            = null;
+        this.bootloaderMode   = false;
+        this.firmwareVersion  = '0.0.0';
+        this.firmwarePath     = '';
+        this.firmwareLength   = 0;
         this.progressCallback = progressCallback;
     }
 
@@ -29,9 +27,6 @@ export class HepiaLight2Prog {
             try {
                 await this.board.destroy();
             } catch (err) {
-                console.error(
-                    `Failed to destroy board:\n${err.message}\n${err.stack}`
-                );
                 this.sendErr(`Failed to destroy board: ${err}`);
             }
             this.board = null;

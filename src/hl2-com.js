@@ -12,22 +12,24 @@ const CHAR_CTRL_E = '\x05';
 var VENDOR_IDS  = ['1fc9', '1f00'];
 var PRODUCT_IDS = ['0083', '2012'];
 
-export async function find() {
-    const ports = await SerialPort.list();
-    return ports.find(function(port) {
-        let indexOfVendorId = VENDOR_IDS.indexOf(port.vendorId);
-        let indexOfProductId = PRODUCT_IDS.indexOf(port.productId);
-        return indexOfVendorId == indexOfProductId && indexOfVendorId != -1;
-    });
-}
+// export async function find() {
+//     const ports = await SerialPort.list();
+//     return ports.find(function(port) {
+//         let indexOfVendorId = VENDOR_IDS.indexOf(port.vendorId);
+//         let indexOfProductId = PRODUCT_IDS.indexOf(port.productId);
+//         return indexOfVendorId == indexOfProductId && indexOfVendorId != -1;
+//     });
+// }
 
-export async function find_all() {
+export async function find() {
     const portList = await SerialPort.list();
     let ports = [];
+    let indexOfVendorId = -1;
+    let indexOfProductId = -1;
     return new Promise((resolve, reject) => {
         portList.forEach(port => {
-            let indexOfVendorId = VENDOR_IDS.indexOf(port.vendorId);
-            let indexOfProductId = PRODUCT_IDS.indexOf(port.productId);
+            indexOfVendorId = VENDOR_IDS.indexOf(port.vendorId);
+            indexOfProductId = PRODUCT_IDS.indexOf(port.productId);
             if (indexOfVendorId == indexOfProductId && indexOfVendorId != -1) {
                 ports.push(port.path);
             }
@@ -41,10 +43,13 @@ export async function find_all() {
 
 export class HepiaLight2Com {
     constructor(dataCb, errorCb, parser = new Readline('\n')) {
-        this.dataCb = dataCb;
-        this.errorCb = errorCb;
-        this.parser = parser;
-        this.rx = [];
+        this.dataCb      = dataCb;
+        this.errorCb     = errorCb;
+        this.parser      = parser;
+        this.port        = null;
+        this.rx          = [];
+        this.destroying  = false;
+        this.errorRaised = false;
         if (process.platform === 'win32') {
             VENDOR_IDS = VENDOR_IDS.map(vendorId => vendorId.toUpperCase());
             PRODUCT_IDS = PRODUCT_IDS.map(productId => productId.toUpperCase());
@@ -52,43 +57,49 @@ export class HepiaLight2Com {
     }
 
     async connect() {
-        const comPort = await find();
-        if (!comPort) throw 'No hepiaLight2 found';
-        this.port = new SerialPort(comPort.path);
-        this.port.on('error', err => this.onError(err));
-        this.port.on('open', () => this.onOpen());
+        try {
+            const ports = await find();
+            this.port = new SerialPort(ports[0]);
+            this.port.on('error', err => this.onError(err));
+            this.port.on('open', () => this.onOpen());
+        } catch(err) {
+            this.errorCb(err.message);
+        }
     }
 
     async destroy() {
         this.destroying = true;
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             try {
-                this.port.close(() => {
-                    this.port.destroy();
+                if (this.port == null) {
                     resolve();
-                });
+                } else {
+                    this.port.close(() => {
+                        this.port.destroy();
+                        resolve();
+                    });
+                }
             } catch (err) {
-                console.error(`Error while disposing: +${err} `);
-                resolve();
+                console.error(`Error while disposing: ${err} `);
+                reject(err);
             }
         });
     }
 
-    async write(data) {
+    write(data) {
         this.port.write(data);
         this.port.drain();
     }
 
     async read() {
         return new Promise(resolve => {
-            const executeNext = () => {
+            const readNext = () => {
                 if (this.rx.length != 0) {
-                    clearInterval(this.executionInterval);
+                    clearInterval(this.readInterval);
                     resolve(this.rx.shift());
                 }
             };
-
-            this.executionInterval = setInterval(executeNext, 1);
+            this.readInterval = setInterval(readNext, 1);
         });
     }
 
@@ -97,12 +108,14 @@ export class HepiaLight2Com {
     }
 
     async executeCommand(command) {
-        this.write(command + "\r\n\r");
         let data = '';
         let stdout = [];
-        while (await this.read() != `>>> ${command}` + '\r');
-        while ((data = await this.read()) != '>>> \r') {
-            stdout.push(data)
+        if (!this.errorRaised) {
+            this.write(command + "\r\n\r");
+            while (await this.read() != `>>> ${command}` + '\r');
+            while ((data = await this.read()) != '>>> \r') {
+                stdout.push(data)
+            }
         }
         return stdout;
     }
@@ -110,16 +123,13 @@ export class HepiaLight2Com {
     async executeIntervalCommands(commands, interval=INSTRUCTION_INTERVAL, progressCallback=null) {
         return new Promise(resolve => {
             const executeNext = () => {
+                let cmd = '';
                 if (this.errorRaised || commands.length == 0) {
                     clearInterval(this.executionInterval);
-                    if (this.errorRaised) {
-                        console.log('Error port disposed');
-                    }
                     this.port.drain();
                     resolve();
-                    return;
                 }
-                let cmd = commands.shift();
+                cmd = commands.shift();
                 this.write(cmd);
                 if (progressCallback != null) {
                     progressCallback();
@@ -154,8 +164,11 @@ export class HepiaLight2Com {
     }
 
     onClose() {
+        this.port = null;
         this.rx = [];
-        if (!this.destroying) this.onError(new Error('Card disconnected!'));
+        if (!this.destroying) {
+            this.onError(new Error('Card disconnected!'));
+        }
     }
 
     onError(err) {

@@ -31,34 +31,24 @@ class HepiaLight2Manager {
                 await this.board.destroy();
             } catch (err) {
                 this.sendErr(`Failed to destroy board: ${err}`);
-                console.error(
-                    `Failed to destroy board:\n${err.message}\n${err.stack}`
-                );
             }
             this.board = null;
         } else if (this.programmer) {
-            try {
-                await this.programmer.destroy();
-            } catch (err) {
-                this.sendErr(`Failed to destroy programmer: ${err}`);
-                console.error(
-                    `Failed to destroy programmer:\n${err.message}\n${err.stack}`
-                );
-            }
+            await this.programmer.destroy();
             this.programmer = null;
         }
     }
 
     async connect() {
-        let ports = await hl2_com.find_all();
+        let ports = await hl2_com.find();
         vscode.window.showQuickPick(ports).then(val => {
             vscode.window.showInformationMessage(`Connect to ${val}`);
         });
     }
 
     async execute(code) {
-        await this.destroy();
         try {
+            await this.destroy();
             this.board = new hl2_com.HepiaLight2Com(
                 line => this.sendEcho(line),
                 err => this.sendErr(err)
@@ -71,8 +61,14 @@ class HepiaLight2Manager {
     }
 
     async upload(filepath) {
-        await this.destroy();
         try {
+            await this.destroy();
+            this.board = new hl2_com.HepiaLight2Com(
+                () => {},
+                err => this.sendErr(err)
+            );
+            await this.board.connect();
+
             var commands = [
                 CHAR_CTRL_C,
                 "file = open('main.py', 'w+')",
@@ -87,11 +83,6 @@ class HepiaLight2Manager {
             }
             commands.push('file.close()');
             commands.push(EOL);
-
-            this.board = new hl2_com.HepiaLight2Com(
-                () => {},
-                err => this.sendErr(err)
-            );
 
             vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
@@ -110,8 +101,6 @@ class HepiaLight2Manager {
                         progressCounter = 0;
                     }
                 };
-
-                await this.board.connect();
                 await this.board.executeIntervalCommands(commands, 100, progressCallback);
                 vscode.window.showInformationMessage('File uploaded to main.py');
             });
@@ -122,6 +111,8 @@ class HepiaLight2Manager {
 
     async update() {
         try {
+            await this.destroy();
+            await hl2_com.find();
             vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
                 title: 'Updating device',
@@ -140,7 +131,6 @@ class HepiaLight2Manager {
                         progressCounter = 0;
                     }
                 };
-                await this.destroy();
                 this.programmer = new hl2_prog.HepiaLight2Prog(progressCallback);
                 await this.programmer.start();
             });
