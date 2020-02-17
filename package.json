@@ -30,6 +30,15 @@
     "contributes": {
         "commands": [
             {
+                "command": "hl2.connect",
+                "title": "hepialight : connect",
+                "category": "hepiaLight2",
+                "icon": {
+                    "light": "./resources/icons/light/plug.svg",
+                    "dark": "./resources/icons/dark/plug.svg"
+                }
+            },
+            {
                 "command": "hl2.run",
                 "title": "hepialight : run file",
                 "category": "hepiaLight2",
@@ -95,6 +104,11 @@
                 }
             ],
             "editor/title": [
+                {
+                    "when": "resourceLangId == python",
+                    "command": "hl2.connect",
+                    "group": "navigation"
+                },
                 {
                     "when": "resourceLangId == python",
                     "command": "hl2.run",
