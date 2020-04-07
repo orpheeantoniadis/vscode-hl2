@@ -23,14 +23,6 @@ function activate(context) {
             HepiaLight2Manager = require('./lib/hl2-manager.js');
             var  hepiaLight2Manager = new HepiaLight2Manager(vscode.window.createOutputChannel('HL2 REPL'));
 
-            let connect_disposable = vscode.commands.registerCommand('hl2.connect', function () {
-                try {
-                    hepiaLight2Manager.connect();
-                } catch (err) {
-                    vscode.window.showErrorMessage(err.message);
-                }
-            });
-
             let run_disposable = vscode.commands.registerCommand('hl2.run', function () {
                 let editor = vscode.window.activeTextEditor;
                 if (editor) {
@@ -66,7 +58,6 @@ function activate(context) {
             });
 
             context.subscriptions.push(
-                connect_disposable,
                 run_disposable,
                 upload_disposable,
                 update_disposable

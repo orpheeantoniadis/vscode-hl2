@@ -49,13 +49,6 @@ class HepiaLight2Manager {
         }
     }
 
-    async connect() {
-        let ports = await hl2_com.find_all();
-        vscode.window.showQuickPick(ports).then(val => {
-            vscode.window.showInformationMessage(`Connect to ${val}`);
-        });
-    }
-
     async execute(code) {
         await this.destroy();
         try {
