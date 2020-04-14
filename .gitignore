@@ -1,5 +1,6 @@
 # Compiled files
 /lib
+/dist
 
 # Node JS
 node_modules
