@@ -8,6 +8,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
  * Add firmware version 0.5.2
  * Remove firmwares < 0.5.0
+ * Extension now bundled with webpack
 
 ## [v0.6.5]
 
@@ -96,7 +97,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [v0.3.0]
 
  * Restructure python scripts
- * Check the hepiaLight2 version befor updating
+ * Check the hepiaLight2 version before updating
  * Complete .vscodeignore
  * Install pyserial on extension installation
  * Add an icon to the extension

@@ -21,8 +21,8 @@ test/**
 vsc-extension-quickstart.md
 
 # Modules
+native_modules/**
 node_modules/**
-native_modules
 !node_modules/@serialport
 !node_modules/bindings
 !node_modules/debug
