@@ -21,21 +21,7 @@ This application relies heavily on [pymakr](https://marketplace.visualstudio.com
 
 # Known issues
 
-## Error: Device or resource busy, cannot open /dev/ttyACM0
-
-In Linux, (ModemManager will try to comunicate)[https://bugs.launchpad.net/modemmanager/+bug/700261] with the HepiaLight board
-when connected. Please wait 10-15s after pluging the card to compensate for this.
-
-Optionally, you can prevent ModemManager from communicating with the board.
-To do this, copy the the udev rules file `udevrules/99-hepialight.rules` into `/etc/udev/rules.d`.
-
-Apply these changes by running:
-
-```{.bash}
-udevadm control --reload-rules && udevadm trigger
-```
-
-## Permission issues
+## Error: Permission denied, cannot open /dev/ttyACM0
 
 Be sure to add your user to the device group.
 
@@ -54,4 +40,18 @@ To add your user to the group, execute:
 
 ```{.bash}
 sudo usermod -a -G dialout $USER
+```
+
+## Error: Device or resource busy, cannot open /dev/ttyACM0
+
+In Linux, (ModemManager will try to comunicate)[https://bugs.launchpad.net/modemmanager/+bug/700261] with the HepiaLight board
+when connected. Please wait 10-15s after pluging the card to compensate for this.
+
+Optionally, you can prevent ModemManager from communicating with the board.
+To do this, copy the the udev rules file `udevrules/99-hepialight.rules` into `/etc/udev/rules.d`.
+
+Apply these changes by running:
+
+```{.bash}
+udevadm control --reload-rules && udevadm trigger
 ```
