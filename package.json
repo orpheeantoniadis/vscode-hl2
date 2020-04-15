@@ -128,12 +128,14 @@
         }
     },
     "scripts": {
-        "postinstall": "pwsh -nop -f ./scripts/mp-download.ps1 -copyonly",
+        "babel": "babel src --out-dir lib --source-maps",
+        "babel-dev": "babel src --out-dir lib --source-maps --watch",
+        "build": "npm run babel && npm run webpack",
+        "build-dev": "npm run babel-dev && npm run webpack-dev",
         "download-native": "pwsh -nop -f ./scripts/mp-download.ps1 -ElectronVersions 7.1.1 -IgnoreNodeVersion",
-        "build": "babel src --out-dir lib --source-maps",
-        "build-dev": "babel src --out-dir lib --source-maps --watch",
-        "package-prep": "npm install -g vsce",
         "package": "vsce package",
+        "package-prep": "npm install -g vsce",
+        "postinstall": "pwsh -nop -f ./scripts/mp-download.ps1 -copyonly",
         "vscode:prepublish": "npm ci && npm prune && webpack --mode production",
         "webpack": "webpack --mode development",
         "webpack-dev": "webpack --mode development --watch"
