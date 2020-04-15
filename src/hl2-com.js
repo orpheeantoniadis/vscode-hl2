@@ -12,15 +12,6 @@ const CHAR_CTRL_E = '\x05';
 var VENDOR_IDS  = ['1fc9', '1f00'];
 var PRODUCT_IDS = ['0083', '2012'];
 
-// export async function find() {
-//     const ports = await SerialPort.list();
-//     return ports.find(function(port) {
-//         let indexOfVendorId = VENDOR_IDS.indexOf(port.vendorId);
-//         let indexOfProductId = PRODUCT_IDS.indexOf(port.productId);
-//         return indexOfVendorId == indexOfProductId && indexOfVendorId != -1;
-//     });
-// }
-
 export async function find() {
     const portList = await SerialPort.list();
     let ports = [];
@@ -53,6 +44,16 @@ export class HepiaLight2Com {
         if (process.platform === 'win32') {
             VENDOR_IDS = VENDOR_IDS.map(vendorId => vendorId.toUpperCase());
             PRODUCT_IDS = PRODUCT_IDS.map(productId => productId.toUpperCase());
+        }
+    }
+
+    async connect_to(port) {
+        try {
+            this.port = new SerialPort(port);
+            this.port.on('error', err => this.onError(err));
+            this.port.on('open', () => this.onOpen());
+        } catch(err) {
+            this.errorCb(err.message);
         }
     }
 
@@ -121,13 +122,28 @@ export class HepiaLight2Com {
     }
 
     async executeIntervalCommands(commands, interval=INSTRUCTION_INTERVAL, progressCallback=null) {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
+            // for (let command of commands) {
+            //     if (this.errorRaised) {
+            //         this.port.drain();
+            //         console.log("reject");
+            //         reject();
+            //         break;
+            //     }
+            //     this.write(command);
+            //     if (progressCallback != null) {
+            //         progressCallback();
+            //     }
+            //     // await new Promise(resolve => setTimeout(resolve, interval));
+            // }
+            // resolve();
+
             const executeNext = () => {
                 let cmd = '';
                 if (this.errorRaised || commands.length == 0) {
                     clearInterval(this.executionInterval);
                     this.port.drain();
-                    resolve();
+                    return;
                 }
                 cmd = commands.shift();
                 this.write(cmd);
@@ -135,7 +151,6 @@ export class HepiaLight2Com {
                     progressCallback();
                 }
             };
-
             this.executionInterval = setInterval(
                 executeNext,
                 interval

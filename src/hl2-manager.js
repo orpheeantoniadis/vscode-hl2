@@ -40,20 +40,37 @@ class HepiaLight2Manager {
     }
 
     async connect() {
-        let ports = await hl2_com.find();
-        vscode.window.showQuickPick(ports).then(val => {
-            vscode.window.showInformationMessage(`Connect to ${val}`);
-        });
+        try {
+            let ports = await hl2_com.find();
+            await vscode.window.showQuickPick(ports).then(async (port) => {
+                if (port != undefined) {
+                    await this.destroy();
+                    this.board = new hl2_com.HepiaLight2Com(
+                        line => this.sendEcho(line),
+                        err => this.sendErr(err)
+                    );
+                    await this.board.connect_to(port);
+                    vscode.window.showInformationMessage(`Connect to ${port}`);
+                } else {
+                    throw("No board selected");
+                }
+            });
+        } catch (err) {
+            this.sendErr(`Cannot connect to any board: ${err}`);
+        }
     }
 
     async execute(code) {
         try {
-            await this.destroy();
-            this.board = new hl2_com.HepiaLight2Com(
-                line => this.sendEcho(line),
-                err => this.sendErr(err)
-            );
-            await this.board.connect();
+            let ports = await hl2_com.find();
+            if (!this.board || ports.find(port => port == this.board.path) == undefined) {
+                await this.destroy();
+                this.board = new hl2_com.HepiaLight2Com(
+                    line => this.sendEcho(line),
+                    err => this.sendErr(err)
+                );
+                await this.board.connect();
+            }
             await this.board.executeRaw(code);
         } catch (err) {
             this.sendErr(`Cannot write to board: ${err}`);
@@ -62,12 +79,13 @@ class HepiaLight2Manager {
 
     async upload(filepath) {
         try {
-            await this.destroy();
-            this.board = new hl2_com.HepiaLight2Com(
-                () => {},
-                err => this.sendErr(err)
-            );
-            await this.board.connect();
+            if (!this.board) {
+                this.board = new hl2_com.HepiaLight2Com(
+                    () => {},
+                    err => this.sendErr(err)
+                );
+                await this.board.connect();
+            }
 
             var commands = [
                 CHAR_CTRL_C,
