@@ -23,11 +23,18 @@ function activate(context) {
             HepiaLight2Manager = require('./lib/hl2-manager.js');
             var  hepiaLight2Manager = new HepiaLight2Manager(vscode.window.createOutputChannel('HL2 REPL'));
 
-            let connect_disposable = vscode.commands.registerCommand('hl2.connect', function () {
-                try {
-                    hepiaLight2Manager.connect();
-                } catch (err) {
-                    vscode.window.showErrorMessage(err.message);
+            let connect_disposable = vscode.commands.registerCommand('hl2.connect', async function () {
+                let editor = vscode.window.activeTextEditor;
+                if (editor) {
+                    let document = editor.document;
+                    let ports = await hepiaLight2Manager.get_port();
+                    if (ports) {
+                        await vscode.window.showQuickPick(ports).then(async (port) => {
+                            if (port) {
+                                hepiaLight2Manager.connect(document.fileName, port);
+                            }
+                        });
+                    }
                 }
             });
 
@@ -36,12 +43,7 @@ function activate(context) {
                 if (editor) {
                     let document = editor.document;
                     hepiaLight2Manager.outputChannel.show(preserveFocus=true);
-                    try {
-                        const data = fs.readFileSync(document.fileName, 'utf8');
-                        hepiaLight2Manager.execute(data);
-                    } catch (err) {
-                        vscode.window.showErrorMessage(err.message);
-                    }
+                    hepiaLight2Manager.execute(document.fileName);
                 }
             });
 

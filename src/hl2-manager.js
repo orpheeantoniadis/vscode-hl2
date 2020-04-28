@@ -7,12 +7,11 @@ const hl2_prog         = require('./hl2-prog.js');
 
 const EOL         = '\x0D\x0A';
 const CHAR_CTRL_C = '\x03';
-const CHAR_CTRL_D = '\x04';
-const CHAR_CTRL_E = '\x05';
 
 class HepiaLight2Manager {
     constructor(outputChannel) {
         this.outputChannel = outputChannel;
+        this.port = {};
         this.board = null;
         this.programmer = null;
     }
@@ -23,13 +22,14 @@ class HepiaLight2Manager {
 
     sendErr(err) {
         vscode.window.showErrorMessage(err);
+        console.error(err);
     }
 
     async destroy() {
         if (this.board) {
             try {
                 await this.board.destroy();
-            } catch (err) {
+            } catch(err) {
                 this.sendErr(`Failed to destroy board: ${err}`);
             }
             this.board = null;
@@ -39,39 +39,47 @@ class HepiaLight2Manager {
         }
     }
 
-    async connect() {
+    async get_port() {
         try {
             let ports = await hl2_com.find();
-            await vscode.window.showQuickPick(ports).then(async (port) => {
-                if (port != undefined) {
-                    await this.destroy();
-                    this.board = new hl2_com.HepiaLight2Com(
-                        line => this.sendEcho(line),
-                        err => this.sendErr(err)
-                    );
-                    await this.board.connect_to(port);
-                    vscode.window.showInformationMessage(`Connect to ${port}`);
-                } else {
-                    throw("No board selected");
+            return ports;
+        } catch (err) {
+            this.sendErr(`${err}`);
+        }
+    }
+
+    async connect(fileName, port=undefined) {
+        try {
+            if (port === undefined) {
+                let ports = await hl2_com.find();
+                if (ports) {
+                    port = ports[0];
                 }
-            });
+            }
+            await this.destroy();
+            this.board = new hl2_com.HepiaLight2Com(
+                line => this.sendEcho(line),
+                err => this.sendErr(err)
+            );
+            await this.board.connect_to(port);
+            this.port[fileName] = port;
+            vscode.window.showInformationMessage(`Connect to ${port}`);
         } catch (err) {
             this.sendErr(`Cannot connect to any board: ${err}`);
         }
     }
 
-    async execute(code) {
+    async execute(fileName) {
         try {
+            const data = fs.readFileSync(fileName, 'utf8');
             let ports = await hl2_com.find();
-            if (!this.board || ports.find(port => port == this.board.path) == undefined) {
-                await this.destroy();
-                this.board = new hl2_com.HepiaLight2Com(
-                    line => this.sendEcho(line),
-                    err => this.sendErr(err)
-                );
-                await this.board.connect();
+            let port = ports.find(port => port == this.port[fileName]);
+            if (this.board === null || !port) {
+                await this.connect(fileName, port);
+            } else if (this.board.port.path != port) {
+                await this.connect(fileName, port);
             }
-            await this.board.executeRaw(code);
+            await this.board.executeRaw(data);
         } catch (err) {
             this.sendErr(`Cannot write to board: ${err}`);
         }

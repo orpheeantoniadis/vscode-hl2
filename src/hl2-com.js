@@ -53,7 +53,7 @@ export class HepiaLight2Com {
             this.port.on('error', err => this.onError(err));
             this.port.on('open', () => this.onOpen());
         } catch(err) {
-            this.errorCb(err.message);
+            throw err;
         }
     }
 
@@ -76,7 +76,9 @@ export class HepiaLight2Com {
                     resolve();
                 } else {
                     this.port.close(() => {
-                        this.port.destroy();
+                        if (this.port != null) {
+                            this.port.destroy();
+                        }
                         resolve();
                     });
                 }
@@ -122,33 +124,19 @@ export class HepiaLight2Com {
     }
 
     async executeIntervalCommands(commands, interval=INSTRUCTION_INTERVAL, progressCallback=null) {
-        return new Promise((resolve, reject) => {
-            // for (let command of commands) {
-            //     if (this.errorRaised) {
-            //         this.port.drain();
-            //         console.log("reject");
-            //         reject();
-            //         break;
-            //     }
-            //     this.write(command);
-            //     if (progressCallback != null) {
-            //         progressCallback();
-            //     }
-            //     // await new Promise(resolve => setTimeout(resolve, interval));
-            // }
-            // resolve();
-
+        return new Promise(resolve => {
             const executeNext = () => {
                 let cmd = '';
                 if (this.errorRaised || commands.length == 0) {
                     clearInterval(this.executionInterval);
                     this.port.drain();
-                    return;
-                }
-                cmd = commands.shift();
-                this.write(cmd);
-                if (progressCallback != null) {
-                    progressCallback();
+                    resolve();
+                } else {
+                    cmd = commands.shift();
+                    this.write(cmd);
+                    if (progressCallback != null) {
+                        progressCallback();
+                    }
                 }
             };
             this.executionInterval = setInterval(
