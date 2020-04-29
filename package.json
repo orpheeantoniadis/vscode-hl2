@@ -39,6 +39,15 @@
                 }
             },
             {
+                "command": "hl2.disconnect",
+                "title": "hepialight : disconnect",
+                "category": "hepiaLight2",
+                "icon": {
+                    "light": "./resources/icons/light/disconnect.svg",
+                    "dark": "./resources/icons/dark/disconnect.svg"
+                }
+            },
+            {
                 "command": "hl2.run",
                 "title": "hepialight : run file",
                 "category": "hepiaLight2",
@@ -107,6 +116,11 @@
                 {
                     "when": "resourceLangId == python",
                     "command": "hl2.connect",
+                    "group": "navigation"
+                },
+                {
+                    "when": "resourceLangId == python",
+                    "command": "hl2.disconnect",
                     "group": "navigation"
                 },
                 {

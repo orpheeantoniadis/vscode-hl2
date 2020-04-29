@@ -21,11 +21,11 @@ export async function find() {
         portList.forEach(port => {
             indexOfVendorId = VENDOR_IDS.indexOf(port.vendorId);
             indexOfProductId = PRODUCT_IDS.indexOf(port.productId);
-            if (indexOfVendorId == indexOfProductId && indexOfVendorId != -1) {
+            if (indexOfVendorId === indexOfProductId && indexOfVendorId !== -1) {
                 ports.push(port.path);
             }
         });
-        if (ports.length == 0) {
+        if (ports.length === 0) {
             reject('No hepiaLight2 found');
         }
         resolve(ports);
@@ -47,14 +47,21 @@ export class HepiaLight2Com {
         }
     }
 
-    async connect_to(port) {
-        try {
-            this.port = new SerialPort(port);
+    async connectTo(port) {
+        return new Promise((resolve, reject) => {
+            this.port = new SerialPort(port, {
+                baudRate: 9600,
+                autoOpen: false,
+            });
             this.port.on('error', err => this.onError(err));
             this.port.on('open', () => this.onOpen());
-        } catch(err) {
-            throw err;
-        }
+            this.port.open(function (err) {
+                if (err !== null) {
+                    reject(err);
+                }
+                resolve();
+            });
+        });
     }
 
     async connect() {
@@ -72,7 +79,7 @@ export class HepiaLight2Com {
         this.destroying = true;
         return new Promise((resolve, reject) => {
             try {
-                if (this.port == null) {
+                if (this.port === null) {
                     resolve();
                 } else {
                     this.port.close(() => {
@@ -97,7 +104,7 @@ export class HepiaLight2Com {
     async read() {
         return new Promise(resolve => {
             const readNext = () => {
-                if (this.rx.length != 0) {
+                if (this.rx.length !== 0) {
                     clearInterval(this.readInterval);
                     resolve(this.rx.shift());
                 }

@@ -1,6 +1,5 @@
 const vscode = require('vscode');
-const fs     = require('fs');
-var HepiaLight2Manager;
+const command = require('./lib/command.js');
 
 function prepareSerialPort(cb) {
     try {
@@ -20,58 +19,17 @@ function activate(context) {
             console.log(err_mess);
             console.log(error);
         } else {
-            HepiaLight2Manager = require('./lib/hl2-manager.js');
-            var  hepiaLight2Manager = new HepiaLight2Manager(vscode.window.createOutputChannel('HL2 REPL'));
-
-            let connect_disposable = vscode.commands.registerCommand('hl2.connect', async function () {
-                let editor = vscode.window.activeTextEditor;
-                if (editor) {
-                    let document = editor.document;
-                    let ports = await hepiaLight2Manager.get_port();
-                    if (ports) {
-                        await vscode.window.showQuickPick(ports).then(async (port) => {
-                            if (port) {
-                                hepiaLight2Manager.connect(document.fileName, port);
-                            }
-                        });
-                    }
-                }
-            });
-
-            let run_disposable = vscode.commands.registerCommand('hl2.run', function () {
-                let editor = vscode.window.activeTextEditor;
-                if (editor) {
-                    let document = editor.document;
-                    hepiaLight2Manager.outputChannel.show(preserveFocus=true);
-                    hepiaLight2Manager.execute(document.fileName);
-                }
-            });
-
-            let upload_disposable = vscode.commands.registerCommand('hl2.upload', function () {
-                let editor = vscode.window.activeTextEditor;
-                if (editor) {
-                    let document = editor.document;
-                    try {
-                        hepiaLight2Manager.upload(document.fileName);
-                    } catch (err) {
-                        vscode.window.showErrorMessage(err.message);
-                    }
-                }
-            });
-
-            let update_disposable = vscode.commands.registerCommand('hl2.update', function () {
-                try {
-                    hepiaLight2Manager.update();
-                } catch (err) {
-                    vscode.window.showErrorMessage(err.message);
-                }
-            });
-
+            let connect = vscode.commands.registerCommand('hl2.connect', () => command.connect());
+            let disconnect = vscode.commands.registerCommand('hl2.disconnect', () => command.disconnect());
+            let run = vscode.commands.registerCommand('hl2.run', () => command.run());
+            let upload = vscode.commands.registerCommand('hl2.upload', () => command.upload());
+            let update = vscode.commands.registerCommand('hl2.update', () => command.update());
             context.subscriptions.push(
-                connect_disposable,
-                run_disposable,
-                upload_disposable,
-                update_disposable
+                connect,
+                disconnect,
+                run,
+                upload,
+                update,
             );
         }
     });

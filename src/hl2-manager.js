@@ -25,21 +25,33 @@ class HepiaLight2Manager {
         console.error(err);
     }
 
-    async destroy() {
-        if (this.board) {
+    async destroyBoard() {
+        let port = '';
+        if (this.board !== null) {
             try {
+                port = this.board.port.path;
                 await this.board.destroy();
+                this.board = null;
             } catch(err) {
-                this.sendErr(`Failed to destroy board: ${err}`);
+                this.sendErr(`Failed to disconnect board: ${err}`);
             }
-            this.board = null;
-        } else if (this.programmer) {
+        }
+        return port;
+    }
+
+    async destroyProgrammer() {
+        if (this.programmer !== null) {
             await this.programmer.destroy();
             this.programmer = null;
         }
     }
 
-    async get_port() {
+    async destroy() {
+        await this.destroyBoard();
+        await this.destroyProgrammer();
+    }
+
+    async getPorts() {
         try {
             let ports = await hl2_com.find();
             return ports;
@@ -61,11 +73,19 @@ class HepiaLight2Manager {
                 line => this.sendEcho(line),
                 err => this.sendErr(err)
             );
-            await this.board.connect_to(port);
+            await this.board.connectTo(port);
             this.port[fileName] = port;
             vscode.window.showInformationMessage(`Connect to ${port}`);
         } catch (err) {
-            this.sendErr(`Cannot connect to any board: ${err}`);
+            await this.destroy();
+            this.sendErr(`Cannot connect to board: ${err}`);
+        }
+    }
+
+    async disconnect() {
+        let port = await this.destroyBoard();
+        if (port !== '') {
+            vscode.window.showInformationMessage(`Disconnect port ${port}`);
         }
     }
 
@@ -74,12 +94,15 @@ class HepiaLight2Manager {
             const data = fs.readFileSync(fileName, 'utf8');
             let ports = await hl2_com.find();
             let port = ports.find(port => port == this.port[fileName]);
-            if (this.board === null || !port) {
+            if (this.board === null || port === undefined) {
                 await this.connect(fileName, port);
             } else if (this.board.port.path != port) {
                 await this.connect(fileName, port);
             }
-            await this.board.executeRaw(data);
+            if (this.board !== null) {
+                this.outputChannel.show(true);
+                await this.board.executeRaw(data);
+            }
         } catch (err) {
             this.sendErr(`Cannot write to board: ${err}`);
         }
