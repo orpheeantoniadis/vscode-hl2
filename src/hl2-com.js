@@ -4,10 +4,10 @@ const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
 
 const INSTRUCTION_INTERVAL = 10;
-const EOL         = '\x0A\x0D';
-const CHAR_CTRL_C = '\x03';
-const CHAR_CTRL_D = '\x04';
-const CHAR_CTRL_E = '\x05';
+export const EOL         = '\x0A\x0D';
+export const CHAR_CTRL_C = '\x03';
+export const CHAR_CTRL_D = '\x04';
+export const CHAR_CTRL_E = '\x05';
 
 var VENDOR_IDS  = ['1fc9', '1f00'];
 var PRODUCT_IDS = ['0083', '2012'];
@@ -26,7 +26,7 @@ export async function find() {
             }
         });
         if (ports.length === 0) {
-            reject('No hepiaLight2 found');
+            reject(new Error('No hepiaLight2 found'));
         }
         resolve(ports);
     });
@@ -117,6 +117,15 @@ export class HepiaLight2Com {
         this.write(CHAR_CTRL_C);
     }
 
+    async reset() {
+        let commands = [
+            CHAR_CTRL_C,
+            `import machine${EOL}`,
+            `machine.reset()${EOL}`
+        ];
+        await this.executeIntervalCommands(commands);
+    }
+
     async executeCommand(command) {
         let data = '';
         let stdout = [];
@@ -156,8 +165,7 @@ export class HepiaLight2Com {
     async executeRaw(code) {
         let commands = [
             CHAR_CTRL_C,
-            'eteindre_tout()',
-            EOL,
+            `eteindre_tout()${EOL}`,
             CHAR_CTRL_E
         ];
         for (let line of code.split('\n')) {
@@ -165,6 +173,22 @@ export class HepiaLight2Com {
         }
         commands.push(CHAR_CTRL_D);
         return this.executeIntervalCommands(commands);
+    }
+
+    async uploadFile(fileName, data, progressCallback=null) {
+        var commands = [
+            CHAR_CTRL_C,
+            `eteindre_tout()${EOL}`,
+            `file = open('${fileName}', 'w+')${EOL}`
+        ];
+        for (let line of data.split('\n')) {
+            line = line.split(String.raw`'`).join(String.raw`\'`);
+            line = line.split(String.raw`"`).join(String.raw`\"`);
+            commands.push(String.raw`file.write('${line}\n')${EOL}`);
+        }
+        commands.push(`file.close()${EOL}`);
+        let total = commands.length;
+        await this.executeIntervalCommands(commands, 50, () => progressCallback(total));
     }
 
     onOpen() {
@@ -183,7 +207,7 @@ export class HepiaLight2Com {
 
     onError(err) {
         this.errorRaised = true;
-        this.errorCb(err.message);
+        this.errorCb(`Node SerialPort: ${err.message}`);
         console.error(err);
     }
 

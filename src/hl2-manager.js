@@ -5,9 +5,6 @@ const fs               = require('fs');
 const hl2_com          = require('./hl2-com.js');
 const hl2_prog         = require('./hl2-prog.js');
 
-const EOL         = '\x0D\x0A';
-const CHAR_CTRL_C = '\x03';
-
 class HepiaLight2Manager {
     constructor(outputChannel) {
         this.outputChannel = outputChannel;
@@ -22,18 +19,20 @@ class HepiaLight2Manager {
 
     sendErr(err) {
         vscode.window.showErrorMessage(err);
-        console.error(err);
     }
 
     async destroyBoard() {
         let port = '';
         if (this.board !== null) {
             try {
-                port = this.board.port.path;
-                await this.board.destroy();
+                if (this.board.port !== null) {
+                    port = this.board.port.path;
+                    await this.board.destroy();
+                }
                 this.board = null;
             } catch(err) {
-                this.sendErr(`Failed to disconnect board: ${err}`);
+                this.sendErr(`Failed to disconnect board: ${err.message}`);
+                console.error(err);
             }
         }
         return port;
@@ -56,30 +55,26 @@ class HepiaLight2Manager {
             let ports = await hl2_com.find();
             return ports;
         } catch (err) {
-            this.sendErr(`${err}`);
+            this.sendErr(`${err.message}`);
+            console.error(err);
         }
     }
 
     async connect(fileName, port=undefined) {
-        try {
-            if (port === undefined) {
-                let ports = await hl2_com.find();
-                if (ports) {
-                    port = ports[0];
-                }
+        if (port === undefined) {
+            let ports = await hl2_com.find();
+            if (ports) {
+                port = ports[0];
             }
-            await this.destroy();
-            this.board = new hl2_com.HepiaLight2Com(
-                line => this.sendEcho(line),
-                err => this.sendErr(err)
-            );
-            await this.board.connectTo(port);
-            this.port[fileName] = port;
-            vscode.window.showInformationMessage(`Connect to ${port}`);
-        } catch (err) {
-            await this.destroy();
-            this.sendErr(`Cannot connect to board: ${err}`);
         }
+        await this.destroy();
+        this.board = new hl2_com.HepiaLight2Com(
+            line => this.sendEcho(line),
+            err => this.sendErr(err)
+        );
+        await this.board.connectTo(port);
+        this.port[fileName] = port;
+        vscode.window.showInformationMessage(`Connect to ${port}`);
     }
 
     async disconnect() {
@@ -89,73 +84,27 @@ class HepiaLight2Manager {
         }
     }
 
-    async execute(fileName) {
-        try {
-            const data = fs.readFileSync(fileName, 'utf8');
-            let ports = await hl2_com.find();
-            let port = ports.find(port => port == this.port[fileName]);
-            if (this.board === null || port === undefined) {
-                await this.connect(fileName, port);
-            } else if (this.board.port.path != port) {
-                await this.connect(fileName, port);
-            }
-            if (this.board !== null) {
-                this.outputChannel.show(true);
-                await this.board.executeRaw(data);
-            }
-        } catch (err) {
-            this.sendErr(`Cannot write to board: ${err}`);
+    async connectToEditor(fileName) {
+        let ports = await hl2_com.find();
+        let port = ports.find(port => port == this.port[fileName]);
+        if (this.board === null || this.board.port === null || port === undefined) {
+            await this.connect(fileName, port);
+        } else if (this.board.port.path != port) {
+            await this.connect(fileName, port);
+        }
+        if (this.board === null) {
+            throw new Error('Connection failed');
         }
     }
 
-    async upload(filepath) {
-        try {
-            if (!this.board) {
-                this.board = new hl2_com.HepiaLight2Com(
-                    () => {},
-                    err => this.sendErr(err)
-                );
-                await this.board.connect();
-            }
+    async execute(fileName) {
+        const data = fs.readFileSync(fileName, 'utf8');
+        await this.board.executeRaw(data);
+    }
 
-            var commands = [
-                CHAR_CTRL_C,
-                "file = open('main.py', 'w+')",
-                EOL
-            ];
-            let data = fs.readFileSync(filepath, 'utf8');
-            for (let line of data.split('\n')) {
-                line = line.split(String.raw`'`).join(String.raw`\'`);
-                line = line.split(String.raw`"`).join(String.raw`\"`);
-                commands.push(String.raw`file.write('${line}\n')`);
-                commands.push(EOL);
-            }
-            commands.push('file.close()');
-            commands.push(EOL);
-
-            vscode.window.withProgress({
-                location: vscode.ProgressLocation.Notification,
-                title: "Uploading file to device's main.py",
-                cancellable: false
-            }, async (progress, token) => {
-                let progressCounter = 0;
-                let total = commands.length;
-                let percentCount = 0;
-                const progressCallback = () => {
-                    progressCounter++;
-                    let percent = progressCounter * 100.0 / total;
-                    if (percent >= 1) {
-                        percentCount += percent;
-                        progress.report({ increment: percent, message: `${Math.round(percentCount)}%` });
-                        progressCounter = 0;
-                    }
-                };
-                await this.board.executeIntervalCommands(commands, 100, progressCallback);
-                vscode.window.showInformationMessage('File uploaded to main.py');
-            });
-        } catch (err) {
-            this.sendErr(`Cannot import file to board: ${err}`);
-        }
+    async upload(fileName, progressCallback) {
+        let data = fs.readFileSync(fileName, 'utf8');
+        await this.board.uploadFile('main.py', data, progressCallback);
     }
 
     async update() {
