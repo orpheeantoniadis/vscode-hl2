@@ -39,6 +39,7 @@ export class HepiaLight2Com {
         this.parser      = parser;
         this.port        = null;
         this.rx          = [];
+        this.sending     = false;
         this.destroying  = false;
         this.errorRaised = false;
         if (process.platform === 'win32') {
@@ -49,6 +50,15 @@ export class HepiaLight2Com {
 
     async connectTo(port) {
         return new Promise((resolve, reject) => {
+            const checkConnection = async () => {
+                if (!this.sending && this.port.binding.poller._eventsCount === 0) {
+                    let error = `Port ${this.port.path} disconnected`;
+                    this.errorCb(error);
+                    console.error(error);
+                    this.destroy();
+                }
+            };
+            let self = this;
             this.port = new SerialPort(port, {
                 baudRate: 9600,
                 autoOpen: false,
@@ -59,6 +69,7 @@ export class HepiaLight2Com {
                 if (err !== null) {
                     reject(err);
                 }
+                self.checkConnectionInterval = setInterval(checkConnection, 100);
                 resolve();
             });
         });
@@ -79,6 +90,7 @@ export class HepiaLight2Com {
         this.destroying = true;
         return new Promise((resolve, reject) => {
             try {
+                clearInterval(this.checkConnectionInterval);
                 if (this.port === null) {
                     resolve();
                 } else {
@@ -130,22 +142,26 @@ export class HepiaLight2Com {
         let data = '';
         let stdout = [];
         if (!this.errorRaised) {
+            this.sending = true;
             this.write(command + "\r\n\r");
             while (await this.read() != `>>> ${command}` + '\r');
             while ((data = await this.read()) != '>>> \r') {
                 stdout.push(data)
             }
+            this.sending = false;
         }
         return stdout;
     }
 
     async executeIntervalCommands(commands, interval=INSTRUCTION_INTERVAL, progressCallback=null) {
+        this.sending = true;
         return new Promise(resolve => {
             const executeNext = () => {
                 let cmd = '';
                 if (this.errorRaised || commands.length == 0) {
                     clearInterval(this.executionInterval);
                     this.port.drain();
+                    this.sending = false;
                     resolve();
                 } else {
                     cmd = commands.shift();
