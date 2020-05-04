@@ -38,7 +38,6 @@ export class HepiaLight2Com {
         this.errorCb     = errorCb;
         this.parser      = parser;
         this.port        = null;
-        this.rx          = [];
         this.sending     = false;
         this.destroying  = false;
         this.errorRaised = false;
@@ -113,15 +112,20 @@ export class HepiaLight2Com {
         this.port.drain();
     }
 
+    attach(callback) {
+        this.readCallback = callback;
+    }
+
+    detach() {
+        this.readCallback = undefined;
+    }
+
     async read() {
         return new Promise(resolve => {
-            const readNext = () => {
-                if (this.rx.length !== 0) {
-                    clearInterval(this.readInterval);
-                    resolve(this.rx.shift());
-                }
-            };
-            this.readInterval = setInterval(readNext, 1);
+            this.attach((data) => {
+                this.detach();
+                resolve(data);
+            });
         });
     }
 
@@ -139,18 +143,30 @@ export class HepiaLight2Com {
     }
 
     async executeCommand(command) {
-        let data = '';
-        let stdout = [];
-        if (!this.errorRaised) {
-            this.sending = true;
-            this.write(command + "\r\n\r");
-            while (await this.read() != `>>> ${command}` + '\r');
-            while ((data = await this.read()) != '>>> \r') {
-                stdout.push(data)
+        return new Promise(async (resolve, reject) => {
+            let stdout = [];
+            if (!this.errorRaised) {
+                this.sending = true;
+                this.write(`${command}${EOL}${EOL}`);
+                this.stdoutStart = false;
+                this.attach((line) => {
+                    if (this.stdoutStart) {
+                        if (line !== '>>> \r') {
+                            stdout.push(line)
+                        } else {
+                            this.detach();
+                            this.stdoutStart = false;
+                            this.sending = false;
+                            resolve(stdout);
+                        }
+                    } else if (line === `>>> ${command}\r`) {
+                        this.stdoutStart = true;
+                    }
+                });
+            } else {
+                reject(new Error('An error occured with serialport module'));
             }
-            this.sending = false;
-        }
-        return stdout;
+        });
     }
 
     async executeIntervalCommands(commands, interval=INSTRUCTION_INTERVAL, progressCallback=null) {
@@ -215,7 +231,6 @@ export class HepiaLight2Com {
 
     onClose() {
         this.port = null;
-        this.rx = [];
         if (!this.destroying) {
             this.onError(new Error('Card disconnected!'));
         }
@@ -228,7 +243,9 @@ export class HepiaLight2Com {
     }
 
     onData(data) {
-        this.rx.push(data.toString('utf8'));
+        if (this.readCallback !== undefined) {
+            this.readCallback(data.toString('utf8'));
+        }
         this.dataCb(data.toString('utf8'));
     }
 }

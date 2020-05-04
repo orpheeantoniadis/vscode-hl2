@@ -119,14 +119,14 @@ export class HepiaLight2Prog {
         }
     }
 
-    async put(data) {
-        await this.board.write(data);
+    put(data) {
+        this.board.write(data);
     }
 
-    async putInt(data) {
+    putInt(data) {
         let buffer = Buffer.alloc(4);
         buffer.writeUInt32BE(data);
-        await this.put(buffer);
+        this.put(buffer);
     }
 
     async get() {
@@ -144,7 +144,7 @@ export class HepiaLight2Prog {
             new ByteLength({length: 1})
         );
         await this.board.connect();
-        await this.put('r');
+        this.put('r');
         await this.wait('r');
     }
 
@@ -162,7 +162,7 @@ export class HepiaLight2Prog {
     async sendSize() {
         let error = true;
         while (error) {
-            await this.putInt(this.firmwareLength);
+            this.putInt(this.firmwareLength);
             error = await this.waitOk();
         }
     }
@@ -171,13 +171,13 @@ export class HepiaLight2Prog {
         let error = true;
         let dataChecksum = crc32(data);
         while (error) {
-            await this.put('d');
+            this.put('d');
             error = await this.waitOk();
             if (!error) {
-                await this.putInt(dataChecksum);
+                this.putInt(dataChecksum);
                 error = await this.waitOk();
                 if (!error) {
-                    await this.put(data);
+                    this.put(data);
                     error = await this.waitOk();
                 }
             }
@@ -201,7 +201,7 @@ export class HepiaLight2Prog {
         let error = true;
         let firmwareChecksum = crc32(fs.readFileSync(this.firmwarePath));
         while (error) {
-            await this.put('c');
+            this.put('c');
             error = await this.waitOk();
             if (!error) {
                 this.putInt(firmwareChecksum);
@@ -235,7 +235,7 @@ export class HepiaLight2Prog {
     }
 
     onData(data) {
-        // console.log(data);
+        console.log(data);
     }
 
     onError(err) {
