@@ -1,6 +1,5 @@
 'use babel';
 
-const vscode         = require('vscode');
 const glob           = require('glob');
 const path           = require('path');
 const fs             = require('fs');
@@ -155,7 +154,6 @@ export class HepiaLight2Prog {
             await this.sendFirmware();
             this.progressCallback(0, this.firmwareLength, 'Sending firmware checksum');
             await this.sendChecksum();
-            vscode.window.showInformationMessage('Device successfully program');
         } catch(err) {
             throw err;
         }

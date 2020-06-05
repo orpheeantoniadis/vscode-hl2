@@ -108,7 +108,7 @@ class HepiaLight2Manager {
             if (await this.board.interpreterIsActive()) {
                 if (await this.programmer.checkVersion()) {
                     await this.board.update();
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await new Promise(resolve => setTimeout(resolve, 2000)); // need to wait a little so the device can reboot
                     await this.connectToEditor(fileName);
                 } else {
                     vscode.window.showInformationMessage('Firmware is up to date');
@@ -116,6 +116,7 @@ class HepiaLight2Manager {
                 }
             }
             await this.board.updateParser(new ByteLength({length: 1}));
+            await new Promise(resolve => setTimeout(resolve, 1000)); // need to wait a little because of the change of the parser
             this.programmer.setBoard(this.board);
             return true;
         } catch(err) {

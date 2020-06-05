@@ -3,7 +3,9 @@
 const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
 
-const INSTRUCTION_INTERVAL = 10;
+const MAX_DETETCION_ATTEMPTS = 7;
+const INSTRUCTION_INTERVAL   = 10;
+
 export const EOL         = '\x0A\x0D';
 export const CHAR_CTRL_C = '\x03';
 export const CHAR_CTRL_D = '\x04';
@@ -88,12 +90,18 @@ export class HepiaLight2Com {
 
     async connectTo(port) {
         return new Promise((resolve, reject) => {
+            this.detectionAttempts = 0;
             const checkConnection = async () => {
-                if (!this.sending && this.port.binding.poller._eventsCount === 0) {
-                    // let error = `Port ${this.port.path} disconnected`;
-                    // this.errorCb(error);
-                    // console.error(error);
-                    // this.destroy();
+                if (!this.sending && this.port.binding.writeOperation === null && this.port.binding.poller._eventsCount === 0) {
+                    this._detectionAttempts++;
+                } else {
+                    this._detectionAttempts = 0;
+                }
+                if (this._detectionAttempts >= MAX_DETETCION_ATTEMPTS) {
+                    let error = new Error(`Port ${this.port.path} disconnected`);
+                    this.errorCb(error.message);
+                    console.error(error);
+                    await this.destroy();
                 }
             };
             let self = this;

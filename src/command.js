@@ -67,7 +67,7 @@ export async function upload() {
                 hepiaLight2Manager.outputChannel.hide();
                 await hepiaLight2Manager.upload(document.fileName, progressCallback);
             });
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Need to wait a little because the writing in the FS is asynchronous
             vscode.window.showInformationMessage('File uploaded to main.py');
             await hepiaLight2Manager.board.reset();
             await hepiaLight2Manager.disconnect();
@@ -83,7 +83,6 @@ export async function update() {
         let editor = vscode.window.activeTextEditor;
         if (editor) {
             let document = editor.document;
-            hepiaLight2Manager.outputChannel.show(true);
             if (await hepiaLight2Manager.enterBootloader(document.fileName)) {
                 vscode.window.withProgress({
                     location: vscode.ProgressLocation.Notification,
@@ -104,6 +103,9 @@ export async function update() {
                         }
                     };
                     await hepiaLight2Manager.update(progressCallback);
+                    vscode.window.showInformationMessage('Device successfully updated');
+                    await hepiaLight2Manager.disconnect();
+                    hepiaLight2Manager.outputChannel.clear();
                 });
             }
         }
