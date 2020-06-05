@@ -47,14 +47,53 @@ export class HepiaLight2Com {
         }
     }
 
+    onOpen() {
+        this.port.pipe(this.parser);
+        this.port.on('close', () => this.onClose());
+        this.parser.on('data', data => this.onData(data));
+    }
+
+    onClose() {
+        this.port = null;
+        if (!this.destroying) {
+            this.onError(new Error('Card disconnected!'));
+        }
+    }
+
+    onError(err) {
+        this.errorRaised = true;
+        this.errorCb(`Node SerialPort: ${err.message}`);
+        console.error(err);
+    }
+
+    onData(data) {
+        if (this.readCallback !== undefined) {
+            this.readCallback(data.toString('utf8'));
+        }
+        this.dataCb(data.toString('utf8'));
+    }
+
+    write(data) {
+        this.port.write(data);
+        this.port.drain();
+    }
+
+    attach(callback) {
+        this.readCallback = callback;
+    }
+
+    detach() {
+        this.readCallback = undefined;
+    }
+
     async connectTo(port) {
         return new Promise((resolve, reject) => {
             const checkConnection = async () => {
                 if (!this.sending && this.port.binding.poller._eventsCount === 0) {
-                    let error = `Port ${this.port.path} disconnected`;
-                    this.errorCb(error);
-                    console.error(error);
-                    this.destroy();
+                    // let error = `Port ${this.port.path} disconnected`;
+                    // this.errorCb(error);
+                    // console.error(error);
+                    // this.destroy();
                 }
             };
             let self = this;
@@ -107,17 +146,11 @@ export class HepiaLight2Com {
         });
     }
 
-    write(data) {
-        this.port.write(data);
-        this.port.drain();
-    }
-
-    attach(callback) {
-        this.readCallback = callback;
-    }
-
-    detach() {
-        this.readCallback = undefined;
+    async updateParser(parser) {
+        let path = this.port.path;
+        await this.destroy();
+        this.parser = parser;
+        await this.connectTo(path);
     }
 
     async read() {
@@ -127,19 +160,6 @@ export class HepiaLight2Com {
                 resolve(data);
             });
         });
-    }
-
-    async sendKeyboardInterrupt() {
-        this.write(CHAR_CTRL_C);
-    }
-
-    async reset() {
-        let commands = [
-            CHAR_CTRL_C,
-            `import machine${EOL}`,
-            `machine.reset()${EOL}`
-        ];
-        await this.executeIntervalCommands(commands);
     }
 
     async executeCommand(command) {
@@ -223,29 +243,41 @@ export class HepiaLight2Com {
         await this.executeIntervalCommands(commands, 50, () => progressCallback(total));
     }
 
-    onOpen() {
-        this.port.pipe(this.parser);
-        this.port.on('close', () => this.onClose());
-        this.parser.on('data', data => this.onData(data));
+    async sendKeyboardInterrupt() {
+        this.write(CHAR_CTRL_C);
     }
 
-    onClose() {
-        this.port = null;
-        if (!this.destroying) {
-            this.onError(new Error('Card disconnected!'));
-        }
+    async interpreterIsActive() {
+        return new Promise(async (resolve) => {
+            let timeout = setTimeout(() => resolve(false), 2000);
+            await this.sendKeyboardInterrupt();
+            await this.executeCommand('');
+            clearTimeout(timeout);
+            resolve(true);
+        });
     }
 
-    onError(err) {
-        this.errorRaised = true;
-        this.errorCb(`Node SerialPort: ${err.message}`);
-        console.error(err);
+    async reset() {
+        let commands = [
+            CHAR_CTRL_C,
+            `import machine${EOL}`,
+            `machine.reset()${EOL}`
+        ];
+        await this.executeIntervalCommands(commands);
     }
 
-    onData(data) {
-        if (this.readCallback !== undefined) {
-            this.readCallback(data.toString('utf8'));
-        }
-        this.dataCb(data.toString('utf8'));
+    async version() {
+        await this.sendKeyboardInterrupt();
+        let data = await this.executeCommand('version()');
+        return data[0].substring(1, data[0].length-2);
+    }
+
+    async update() {
+        let commands = [
+            CHAR_CTRL_C,
+            `update()${EOL}`
+        ];
+        await this.executeIntervalCommands(commands);
+        await this.destroy();
     }
 }

@@ -1,16 +1,17 @@
 'use babel';
 
-const vscode           = require('vscode');
-const fs               = require('fs');
-const hl2_com          = require('./hl2-com.js');
-const hl2_prog         = require('./hl2-prog.js');
+const vscode     = require('vscode');
+const fs         = require('fs');
+const ByteLength = require('@serialport/parser-byte-length');
+const hl2_com    = require('./hl2-com.js');
+const hl2_prog   = require('./hl2-prog.js');
 
 class HepiaLight2Manager {
     constructor(outputChannel) {
         this.outputChannel = outputChannel;
         this.port = {};
         this.board = null;
-        this.programmer = null;
+        this.programmer = new hl2_prog.HepiaLight2Prog();
     }
 
     sendEcho(str) {
@@ -38,16 +39,8 @@ class HepiaLight2Manager {
         return port;
     }
 
-    async destroyProgrammer() {
-        if (this.programmer !== null) {
-            await this.programmer.destroy();
-            this.programmer = null;
-        }
-    }
-
     async destroy() {
         await this.destroyBoard();
-        await this.destroyProgrammer();
     }
 
     async getPorts() {
@@ -107,33 +100,35 @@ class HepiaLight2Manager {
         await this.board.uploadFile('main.py', data, progressCallback);
     }
 
-    async update() {
+    async enterBootloader(fileName) {
         try {
-            await this.destroy();
-            await hl2_com.find();
-            vscode.window.withProgress({
-                location: vscode.ProgressLocation.Notification,
-                title: 'Updating device',
-                cancellable: true
-            }, async (progress, token) => {
-                token.onCancellationRequested(() => {
-                    this.destroy();
-                    this.sendErr('Update canceled. Please disconnect and reconnect the board');
-                });
-                let progressCounter = 0;
-                const progressCallback = (increment, total, message) => {
-                    progressCounter += increment;
-                    let percent = progressCounter * 100.0 / total;
-                    if (percent >= 1) {
-                        progress.report({ increment: percent, message: message });
-                        progressCounter = 0;
-                    }
-                };
-                this.programmer = new hl2_prog.HepiaLight2Prog(progressCallback);
-                await this.programmer.start();
-            });
-        } catch (err) {
-            this.sendErr(`Cannot update board: ${err}`);
+            await this.connectToEditor(fileName);
+            this.programmer.setBoard(this.board);
+            await this.programmer.findFirmware();
+            if (await this.board.interpreterIsActive()) {
+                if (await this.programmer.checkVersion()) {
+                    await this.board.update();
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await this.connectToEditor(fileName);
+                } else {
+                    vscode.window.showInformationMessage('Firmware is up to date');
+                    return false;
+                }
+            }
+            await this.board.updateParser(new ByteLength({length: 1}));
+            this.programmer.setBoard(this.board);
+            return true;
+        } catch(err) {
+            throw err;
+        }
+    }
+
+    async update(progressCallback) {
+        try {
+            this.programmer.setProgressCallback(progressCallback);
+            await this.programmer.start();
+        } catch(err) {
+            throw err;
         }
     }
 }

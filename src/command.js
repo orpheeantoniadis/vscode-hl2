@@ -78,10 +78,36 @@ export async function upload() {
     }
 }
 
-export function update() {
+export async function update() {
     try {
-        hepiaLight2Manager.update();
+        let editor = vscode.window.activeTextEditor;
+        if (editor) {
+            let document = editor.document;
+            hepiaLight2Manager.outputChannel.show(true);
+            if (await hepiaLight2Manager.enterBootloader(document.fileName)) {
+                vscode.window.withProgress({
+                    location: vscode.ProgressLocation.Notification,
+                    title: 'Updating device',
+                    cancellable: true
+                }, async (progress, token) => {
+                    token.onCancellationRequested(() => {
+                        hepiaLight2Manager.destroy();
+                        hepiaLight2Manager.sendErr('Update canceled. Please disconnect and reconnect the board');
+                    });
+                    let progressCounter = 0;
+                    const progressCallback = (increment, total, message) => {
+                        progressCounter += increment;
+                        let percent = progressCounter * 100.0 / total;
+                        if (percent >= 1) {
+                            progress.report({ increment: percent, message: message });
+                            progressCounter = 0;
+                        }
+                    };
+                    await hepiaLight2Manager.update(progressCallback);
+                });
+            }
+        }
     } catch (err) {
-        vscode.window.showErrorMessage(err.message);
+        vscode.window.showErrorMessage(`Cannot update device: ${err.message}`);
     }
 }

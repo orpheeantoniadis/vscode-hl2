@@ -1,36 +1,30 @@
 'use babel';
 
 const vscode         = require('vscode');
-const Readline       = require('@serialport/parser-readline');
-const ByteLength     = require('@serialport/parser-byte-length');
 const glob           = require('glob');
 const path           = require('path');
 const fs             = require('fs');
 const semver         = require('semver');
 const { crc32 }      = require('crc');
-const hl2_com        = require('./hl2-com.js');
 
 const DATA_CHUNK_SIZE = 256;
+const MIN_FIRMWARE_VERSION = '0.4.0';
 
 export class HepiaLight2Prog {
-    constructor(progressCallback) {
-        this.board            = null;
-        this.bootloaderMode   = false;
+    constructor(board = null, progressCallback = null) {
+        this.board            = board;
         this.firmwareVersion  = '0.0.0';
         this.firmwarePath     = '';
         this.firmwareLength   = 0;
         this.progressCallback = progressCallback;
     }
 
-    async destroy() {
-        if (this.board) {
-            try {
-                await this.board.destroy();
-            } catch (err) {
-                this.sendErr(`Failed to destroy board: ${err}`);
-            }
-            this.board = null;
-        }
+    setBoard(board) {
+        this.board = board;
+    }
+
+    setProgressCallback(progressCallback) {
+        this.progressCallback = progressCallback;
     }
 
     async findFirmware() {
@@ -56,66 +50,14 @@ export class HepiaLight2Prog {
         });
     }
 
-    async checkBootloaderMode() {
-        try {
-            this.board = new hl2_com.HepiaLight2Com(
-                data => this.onData(data),
-                err => this.onError(err),
-                new Readline('\n')
-            );
-            await this.board.connect();
-            await this.board.sendKeyboardInterrupt();
-            return new Promise(async (resolve) => {
-                const timeoutCallback = () => {
-                    this.destroy();
-                    this.bootloaderMode = true;
-                    console.log('Board is in bootloader mode');
-                    resolve();
-                };
-                let timeout = setTimeout(timeoutCallback, 2000);
-                await this.board.executeCommand('');
-                clearTimeout(timeout);
-                await this.destroy();
-                resolve();
-            });
-        } catch (err) {
-            throw err;
-        }
-    }
-
     async checkVersion() {
-        if (!this.bootloaderMode) {
-            this.board = new hl2_com.HepiaLight2Com(
-                data => this.onData(data),
-                err => this.onError(err),
-                new Readline('\n')
-            );
-            await this.board.connect();
-            await this.board.sendKeyboardInterrupt();
-            let data = await this.board.executeCommand('version()');
-            let boardVersion = data[0].substring(1, data[0].length-2);
-            await this.destroy();
-            if (semver.valid(boardVersion)) {
-                return semver.gt(this.firmwareVersion, boardVersion);
-            } else {
-                throw "Invalid Version : The board's firmware version must be greater than or equal to 0.4.0 to use this functionality"
-            }
-        }
-        return true;
-    }
-
-    async callBootloader() {
-        if (!this.bootloaderMode) {
-            this.board = new hl2_com.HepiaLight2Com(
-                data => this.onData(data),
-                err  => this.onError(err),
-                new Readline('\n')
-            );
-            await this.board.connect();
-            await this.board.sendKeyboardInterrupt();
-            await this.board.executeCommand('update()');
-            await this.destroy();
-            this.bootloaderMode = true;
+        let boardVersion = await this.board.version();
+        if (!semver.valid(boardVersion)) {
+            throw new Error("Firmware's version not valid");
+        } else if (semver.lt(this.firmwareVersion, MIN_FIRMWARE_VERSION)) {
+            throw new Error("Firmware's version not supported");
+        } else {
+            return semver.gt(this.firmwareVersion, boardVersion);
         }
     }
 
@@ -138,12 +80,6 @@ export class HepiaLight2Prog {
     }
 
     async handshake() {
-        this.board = new hl2_com.HepiaLight2Com(
-            data => this.onData(data),
-            err => this.onError(err),
-            new ByteLength({length: 1})
-        );
-        await this.board.connect();
         this.put('r');
         await this.wait('r');
     }
@@ -212,33 +148,16 @@ export class HepiaLight2Prog {
 
     async start() {
         try {
-            await this.findFirmware();
-            await this.checkBootloaderMode();
-            if (await this.checkVersion()) {
-                this.progressCallback(0, 'Resetting device');
-                await this.callBootloader();
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                this.progressCallback(0, 'Handshaking with device');
-                await this.handshake();
-                this.progressCallback(0, 'Programming device');
-                await this.sendSize();
-                await this.sendFirmware();
-                this.progressCallback(0, 'Sending firmware checksum');
-                await this.sendChecksum();
-                vscode.window.showInformationMessage('Device successfully program');
-            } else {
-                vscode.window.showInformationMessage(`Firmware is up to date (version ${this.firmwareVersion})`);
-            }
-        } catch (err) {
-            this.onError(`Programmer failed: ${err}`);
+            this.progressCallback(0, this.firmwareLength, 'Handshaking with device');
+            await this.handshake();
+            this.progressCallback(0, this.firmwareLength, 'Programming device');
+            await this.sendSize();
+            await this.sendFirmware();
+            this.progressCallback(0, this.firmwareLength, 'Sending firmware checksum');
+            await this.sendChecksum();
+            vscode.window.showInformationMessage('Device successfully program');
+        } catch(err) {
+            throw err;
         }
-    }
-
-    onData(data) {
-        console.log(data);
-    }
-
-    onError(err) {
-        vscode.window.showErrorMessage(err);
     }
 }
