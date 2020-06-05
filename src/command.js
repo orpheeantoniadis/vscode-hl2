@@ -83,7 +83,9 @@ export async function update() {
         let editor = vscode.window.activeTextEditor;
         if (editor) {
             let document = editor.document;
+            hepiaLight2Manager.outputChannel.hide();
             if (await hepiaLight2Manager.enterBootloader(document.fileName)) {
+                hepiaLight2Manager.outputChannel.clear();
                 vscode.window.withProgress({
                     location: vscode.ProgressLocation.Notification,
                     title: 'Updating device',

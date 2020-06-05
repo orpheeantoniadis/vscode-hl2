@@ -4,6 +4,15 @@ All notable changes to the "hl2" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [v0.7.0]
+ * Global code improvement
+ * Lot of bug correction
+ * Old hepialights now supported
+ * Add a connect button to select the board to use
+ * Add a disconnect button
+ * Multiple board connections now supported. Every board is bound to an opened python file
+ * Add firmware version 0.5.3
+
 ## [v0.6.6]
 
  * Add firmware version 0.5.2
