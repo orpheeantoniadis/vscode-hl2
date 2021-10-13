@@ -4,6 +4,10 @@ All notable changes to the "hl2" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [v0.7.1]
+ * Change publisher name to HEPIA CoRES
+ * Update serialport native module
+
 ## [v0.7.0]
  * Global code improvement
  * Lot of bug correction

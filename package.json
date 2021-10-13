@@ -2,8 +2,8 @@
     "name": "hl2",
     "displayName": "hepiaLight2",
     "description": "hepiaLight2 for Visual Studio Code",
-    "version": "0.7.0",
-    "publisher": "orpheeantoniadis",
+    "version": "0.7.1",
+    "publisher": "hepia-cores",
     "repository": "https://github.com/orpheeantoniadis/vscode-hl2.git",
     "icon": "resources/images/logo.png",
     "galleryBanner": {
@@ -158,7 +158,7 @@
         "crc": "3.8.0",
         "glob": "^7.1.4",
         "semver": "6.3.0",
-        "serialport": "^8.0.5"
+        "serialport": "^9.2.0"
     },
     "devDependencies": {
         "babel-cli": "^6.26.0",
